@@ -11,7 +11,7 @@ CHECKPOINT_PATH = 'checkpoints/ckpt.pt'
 OUT_DIR = 'checkpoints_sft'
 DATASET_PATH = 'data/raw/alpaca_ptbr.jsonl'
 TOKENIZER_PATH = 'data/tokenized/ia_br_bpe.model'
-DEVICE = 'cpu'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # O Fine-Tuning requer uma Taxa de Aprendizado (LR) muito menor para não "destruir" 
 # a gramática que o modelo aprendeu no passo anterior.

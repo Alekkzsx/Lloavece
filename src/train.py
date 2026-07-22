@@ -25,8 +25,8 @@ batch_size = 4         # Lote de frases. Se seu PC travar/reiniciar, diminua iss
 learning_rate = 6e-4
 max_iters = 10000      # Loop máximo para deixar rodando a madrugada toda.
 
-# Se você tivesse uma GPU forte, colocaria 'cuda' aqui. Vamos usar 'cpu' padrão pro seu PC.
-device = 'cpu'        
+# O código agora é inteligente: Se achar uma GPU (Colab), ele usa. Se não, usa a CPU do seu PC.
+device = 'cuda' if torch.cuda.is_available() else 'cpu'        
 # -----------------------------------------------------------------------------
 
 config = LloaveceConfig.from_name(config_name)
