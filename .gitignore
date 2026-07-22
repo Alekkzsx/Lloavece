@@ -32,9 +32,9 @@ env.bak/
 venv.bak/
 
 # Project Specific
-data/
-!data/.gitkeep
-!data/tokenized/
+/data/
+!/data/.gitkeep
+!/data/tokenized/
 checkpoints/
 !checkpoints/.gitkeep
 
