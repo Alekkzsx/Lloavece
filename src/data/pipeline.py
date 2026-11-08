@@ -1,104 +1,105 @@
 import os
 import json
+import argparse
+import numpy as np
 import sentencepiece as spm
 from tqdm import tqdm
+from src.data.processors.fim import apply_fim
 
-# O numpy é crucial aqui, ele lida com a matriz binária
-try:
-    import numpy as np
-except ImportError:
-    print("ERRO: O pacote 'numpy' é necessário. Rode no terminal: pip install numpy")
-    exit(1)
-
-RAW_DATA = "data/raw/wikipedia/ptwiki_articles.jsonl"
-TOKENIZER_MODEL = "data/tokenized/ia_br_bpe.model"
+TOKENIZER_MODEL = "data/tokenized/lloavece_code_bpe.model"
+RAW_DATA = "data/raw/code_corpus.jsonl"
 PROCESSED_DIR = "data/processed"
-
-# O arquivo oficial que a IA vai ler no treinamento
 TRAIN_BIN = os.path.join(PROCESSED_DIR, "train.bin")
 VAL_BIN = os.path.join(PROCESSED_DIR, "val.bin")
 
-def build_binary_dataset():
-    if not os.path.exists(RAW_DATA):
-        raise FileNotFoundError(f"Arquivo não encontrado: {RAW_DATA}")
-    
-    if not os.path.exists(PROCESSED_DIR):
-        os.makedirs(PROCESSED_DIR)
+def build_code_binary_dataset(
+    raw_data: str = RAW_DATA,
+    tokenizer_path: str = TOKENIZER_MODEL,
+    val_ratio: float = 0.05,
+    fim_rate: float = 0.5
+):
+    if not os.path.exists(raw_data):
+        raise FileNotFoundError(f"Arquivo não encontrado: {raw_data}")
+    if not os.path.exists(tokenizer_path):
+        raise FileNotFoundError(f"Tokenizer não encontrado: {tokenizer_path}. Execute src/tokenizer/code_tokenizer.py primeiro.")
 
-    print(f"Carregando o nosso novo Tokenizer BPE...")
-    sp = spm.SentencePieceProcessor(model_file=TOKENIZER_MODEL)
-    
-    # A IA precisa saber onde um artigo acaba e o outro começa.
+    os.makedirs(PROCESSED_DIR, exist_ok=True)
+
+    print("=" * 60)
+    print("=== PIPELINE BINÁRIO DE CÓDIGO (MEMMAP + FIM) ===")
+    print("=" * 60)
+    print(f"Lendo dados de: {raw_data}")
+    print(f"Tokenizer: {tokenizer_path}")
+
+    sp = spm.SentencePieceProcessor(model_file=tokenizer_path)
     eos_id = sp.piece_to_id("<|eos|>")
+    fim_prefix_id = sp.piece_to_id("<|fim_prefix|>")
+    fim_middle_id = sp.piece_to_id("<|fim_middle|>")
+    fim_suffix_id = sp.piece_to_id("<|fim_suffix|>")
 
-    print(f"Iniciando conversão de texto para Binário Puro (Memmap uint16)...")
-    
-    total_articles = 1232533 # O número exato que coletamos
-    val_articles = 10000     # Vamos separar os últimos 10 mil artigos para Validação
-    
-    train_tokens_count = 0
-    val_tokens_count = 0
-    
-    buffer = []
-    buffer_size = 2_000_000 # Guarda 2 milhões de tokens na RAM antes de salvar no SSD
-    
-    # Deleta os arquivos antigos se existirem
+    # Contagem de linhas
+    with open(raw_data, "r", encoding="utf-8") as f:
+        total_lines = sum(1 for _ in f)
+
+    val_threshold = int(total_lines * (1.0 - val_ratio))
+
+    # Limpa arquivos antigos
     for f in [TRAIN_BIN, VAL_BIN]:
-        if os.path.exists(f): os.remove(f)
-        
-    # Vamos criar os arquivos binários abertos no modo "append binary"
-    f_train = open(TRAIN_BIN, 'wb')
-    f_val = open(VAL_BIN, 'wb')
-    
-    with open(RAW_DATA, 'r', encoding='utf-8') as f:
-        for i, line in tqdm(enumerate(f), total=total_articles, desc="Comprimindo Wikipedia"):
-            doc = json.loads(line)
-            text = doc.get("text", "")
-            if not text:
-                continue
-                
-            # O momento mágico: Texto -> Lista de Números
-            ids = sp.encode(text)
-            ids.append(eos_id) 
-            
-            buffer.extend(ids)
-            
-            # Se for artigo de treino vs validação
-            is_val = (total_articles - i) <= val_articles
-            
-            if is_val:
-                val_tokens_count += len(ids)
-            else:
-                train_tokens_count += len(ids)
-            
-            # Quando o buffer encher, joga tudo no SSD como binário maciço
-            if len(buffer) >= buffer_size:
-                # uint16 (Unsigned Integer de 16 bits). Vai de 0 a 65535.
-                # Como nosso vocabulário tem exatos 65536 tokens, cabe PERFEITAMENTE.
-                # Cada token vai ocupar APENAS 2 bytes (extrema economia de memória)
-                arr = np.array(buffer, dtype=np.uint16)
-                
+        if os.path.exists(f):
+            os.remove(f)
+
+    f_train = open(TRAIN_BIN, "wb")
+    f_val = open(VAL_BIN, "wb")
+
+    train_tokens = 0
+    val_tokens = 0
+
+    with open(raw_data, "r", encoding="utf-8") as f:
+        for idx, line in tqdm(enumerate(f), total=total_lines, desc="Processando Código"):
+            try:
+                doc = json.loads(line)
+                code = doc.get("content") or doc.get("text") or doc.get("code") or ""
+                if not code.strip():
+                    continue
+
+                token_ids = sp.encode(code)
+                is_val = idx >= val_threshold
+
+                if not is_val and fim_rate > 0.0:
+                    # Aplica FIM para autocompletar em IDEs
+                    token_ids = apply_fim(
+                        token_ids,
+                        fim_prefix_id=fim_prefix_id,
+                        fim_middle_id=fim_middle_id,
+                        fim_suffix_id=fim_suffix_id,
+                        fim_rate=fim_rate
+                    )
+
+                token_ids.append(eos_id)
+                arr = np.array(token_ids, dtype=np.uint16)
+
                 if is_val:
                     f_val.write(arr.tobytes())
+                    val_tokens += len(token_ids)
                 else:
                     f_train.write(arr.tobytes())
-                buffer = []
-                
-        # Grava os últimos resíduos do buffer
-        if buffer:
-            arr = np.array(buffer, dtype=np.uint16)
-            f_train.write(arr.tobytes())
+                    train_tokens += len(token_ids)
+
+            except Exception:
+                continue
 
     f_train.close()
     f_val.close()
 
-    print(f"\n✅ Pipeline Concluído! O combustível está pronto.")
-    print(f"Total de Tokens (Treino): {train_tokens_count:,}")
-    print(f"Total de Tokens (Validação): {val_tokens_count:,}")
-    
-    train_mb = os.path.getsize(TRAIN_BIN) / (1024 * 1024)
-    print(f"\nTamanho no SSD (train.bin): {train_mb:.2f} MB")
-    print("\nO seu modelo agora pode ler milhões de tokens em fração de segundos usando memória mapeada!")
+    print(f"\n[OK] Pipeline concluído com sucesso!")
+    print(f"Treino     : {train_tokens:,} tokens salvos em {TRAIN_BIN} ({os.path.getsize(TRAIN_BIN)/1e6:.2f} MB)")
+    print(f"Validação  : {val_tokens:,} tokens salvos em {VAL_BIN} ({os.path.getsize(VAL_BIN)/1e6:.2f} MB)")
 
 if __name__ == "__main__":
-    build_binary_dataset()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", type=str, default=RAW_DATA)
+    parser.add_argument("--tokenizer", type=str, default=TOKENIZER_MODEL)
+    parser.add_argument("--fim_rate", type=float, default=0.5)
+    args = parser.parse_args()
+
+    build_code_binary_dataset(raw_data=args.data, tokenizer_path=args.tokenizer, fim_rate=args.fim_rate)

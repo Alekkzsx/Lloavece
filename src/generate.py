@@ -1,84 +1,78 @@
 import os
+import argparse
 import torch
 import sentencepiece as spm
 from src.model.config import LloaveceConfig
 from src.model.modeling import LloaveceModel
 
-# Caminhos dos arquivos
-CHECKPOINT_PATH = 'checkpoints/ckpt.pt'
-TOKENIZER_PATH = 'data/tokenized/ia_br_bpe.model'
+def generate_code(
+    checkpoint_path: str,
+    tokenizer_path: str = "data/tokenized/lloavece_code_bpe.model",
+    prompt: str = "",
+    fim_prefix: str = "",
+    fim_suffix: str = "",
+    max_new_tokens: int = 256,
+    temperature: float = 0.2,
+    top_p: float = 0.95
+):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Carregando Lloavece-Coder em {device.upper()}...")
 
-# Como estamos testando no seu PC, vamos manter na CPU
-DEVICE = 'cpu'
+    sp = spm.SentencePieceProcessor(model_file=tokenizer_path)
+    ckpt = torch.load(checkpoint_path, map_location=device)
+    config = ckpt["config"]
 
-def main():
-    print("\n[1/3] Acordando o Tokenizer Brasileiro (BPE)...")
-    try:
-        sp = spm.SentencePieceProcessor(model_file=TOKENIZER_PATH)
-    except Exception as e:
-        print(f"Erro ao carregar Tokenizer: {e}")
-        return
+    model = LloaveceModel(config).to(device)
+    model.load_state_dict(ckpt["model"])
+    model.eval()
 
-    print(f"[2/3] Carregando o Cérebro da Lloavece ({CHECKPOINT_PATH})...")
-    if not os.path.exists(CHECKPOINT_PATH):
-        print("Erro: Checkpoint não encontrado. Você precisa rodar o train.py primeiro.")
-        return
+    # Prepara input
+    if fim_prefix or fim_suffix:
+        # Modo Fill-In-The-Middle
+        fim_p_id = sp.piece_to_id("<|fim_prefix|>")
+        fim_s_id = sp.piece_to_id("<|fim_suffix|>")
+        fim_m_id = sp.piece_to_id("<|fim_middle|>")
 
-    # Carrega as memórias salvas no HD
-    checkpoint = torch.load(CHECKPOINT_PATH, map_location=DEVICE, weights_only=False)
-    
-    # Recria o modelo exatamente com a configuração ("micro") que estava salva
-    config = checkpoint['config']
-    model = LloaveceModel(config)
-    
-    # Injeta o conhecimento (pesos matemáticos) dentro da rede neural
-    model.load_state_dict(checkpoint['model'])
-    
-    # Trava o modelo no modo de Leitura/Geração (desativa o aprendizado/treino)
-    model.eval() 
-    model.to(DEVICE)
+        tokens = [fim_p_id] + sp.encode(fim_prefix) + [fim_s_id] + sp.encode(fim_suffix) + [fim_m_id]
+        print("\n=== MODO FIM (PREENCHIMENTO DE CÓDIGO) ===")
+        print(f"[Prefixo]:\n{fim_prefix}")
+        print(f"[Sufixo] :\n{fim_suffix}")
+    else:
+        # Modo Geração Normal
+        tokens = sp.encode(prompt)
+        print(f"\n[Prompt]: {prompt}")
 
-    print(f"[3/3] ✅ Cérebro carregado! (Passo do Treino: {checkpoint.get('iter_num', 'Desconhecido')})")
-    print("\n" + "="*50)
-    print("🤖 TERMINAL DE INFERÊNCIA - LLOAVECE (MICRO)")
-    print("="*50)
-    print("Aviso: Ela treinou por apenas 200 passos. O vocabulário dela")
-    print("ainda é bem confuso e ela pode gerar 'sopa de letrinhas'.")
-    print("Digite 'sair' para encerrar.")
-    print("="*50)
+    input_tensor = torch.tensor([tokens], dtype=torch.long, device=device)
+    eos_id = sp.piece_to_id("<|eos|>")
 
-    while True:
-        try:
-            prompt = input("\nVocê: ")
-            if prompt.strip().lower() in ['sair', 'exit', 'quit', 'q']:
-                break
-                
-            if not prompt.strip():
-                continue
+    print("\n=== LLOAVECE GERANDO CÓDIGO... ===")
+    out_tokens = model.generate(
+        input_tensor,
+        max_new_tokens=max_new_tokens,
+        temperature=temperature,
+        top_p=top_p,
+        eos_id=eos_id
+    )
 
-            # Passo A: Transforma o texto em números (Tokens)
-            input_ids = sp.encode(prompt)
-            x = torch.tensor([input_ids], dtype=torch.long, device=DEVICE)
-
-            print("Lloavece: ", end="", flush=True)
-            
-            # Passo B: A Mágica. Pede pra rede prever os próximos 50 tokens
-            with torch.no_grad():
-                # max_new_tokens diz o tamanho da resposta dela
-                y = model.generate(x, max_new_tokens=40)
-                
-            # Passo C: Transforma a matriz matemática devolta para o Português
-            output_ids = y[0].tolist()
-            
-            # Corta a parte do prompt para exibir apenas a resposta nova
-            generated_ids = output_ids[len(input_ids):]
-            response_text = sp.decode(generated_ids)
-            
-            print(response_text)
-            
-        except KeyboardInterrupt:
-            print("\nEncerrando inferência...")
-            break
+    generated = sp.decode(out_tokens[0].tolist())
+    print(generated)
+    return generated
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", type=str, default="checkpoints/best_model.pt")
+    parser.add_argument("--tokenizer", type=str, default="data/tokenized/lloavece_code_bpe.model")
+    parser.add_argument("--prompt", type=str, default="def calcular_desconto_pix(valor: float) -> float:")
+    parser.add_argument("--fim_prefix", type=str, default="")
+    parser.add_argument("--fim_suffix", type=str, default="")
+    parser.add_argument("--max_tokens", type=int, default=256)
+    args = parser.parse_args()
+
+    generate_code(
+        args.checkpoint,
+        args.tokenizer,
+        prompt=args.prompt,
+        fim_prefix=args.fim_prefix,
+        fim_suffix=args.fim_suffix,
+        max_new_tokens=args.max_tokens
+    )
