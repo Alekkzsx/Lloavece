@@ -3,41 +3,34 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ia-brasileira"
-version = "0.1.0"
-description = "Uma Inteligência Artificial criada do zero, com alma brasileira."
+name = "lloavece-coder"
+version = "0.2.0"
+description = "A Primeira Grande Inteligência Artificial de Código Nativa do Brasil."
 authors = [
-    {name = "Lloavece LLM Team", email = "equipe@ia-brasileira.com.br"}
+    {name = "Lloavece Team", email = "contato@lloavece.com.br"}
 ]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.2.0",
-    "triton>=2.2.0",
-    "deepspeed>=0.14.0",
-    "wandb",
-    "numpy",
-    "pandas",
-    "tqdm",
-    "rich",
-    "trafilatura",
-    "fasttext",
-    "vllm",
-    "fastapi",
-    "uvicorn"
+    "sentencepiece>=0.2.0",
+    "datasets>=2.16.0",
+    "numpy>=1.24.0",
+    "tqdm>=4.66.0",
+    "crcmod>=1.7",
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "black",
-    "isort",
-    "notebook",
-    "ipywidgets"
+    "isort"
 ]
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ['py311']
 
 [tool.isort]
