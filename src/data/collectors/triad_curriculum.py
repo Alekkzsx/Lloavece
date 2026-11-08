@@ -7,7 +7,7 @@ TRIAD_CURRICULUM: List[Dict[str, str]] = [
     # 1. MATEMÁTICA PURA & CÁLCULO
     {
         "prompt": "Explique passo a passo como calcular a derivada de f(x) = x^3 * e^(2x) utilizando a Regra do Produto e da Cadeia, e forneça uma implementação em Python para verificação numérica.",
-        "response": '''### Resolução Matemática Passo a Passo
+        "response": r'''### Resolução Matemática Passo a Passo
 
 Queremos calcular a derivada da função:
 $$f(x) = u(x) \cdot v(x)$$
@@ -58,7 +58,7 @@ assert abs(exata - numerica) < 1e-4
     # 2. ÁLGEBRA LINEAR & ATENÇÃO DO TRANSFORMER
     {
         "prompt": "Como funciona matematicamente o mecanismo de Atenção Scaled Dot-Product do Transformer? Explique as matrizes Q, K, V e escreva o algoritmo em Python com PyTorch.",
-        "response": '''### Fundamentação Matemática da Atenção
+        "response": r'''### Fundamentação Matemática da Atenção
 
 O mecanismo de atenção mapeia uma consulta (**Query**) e um conjunto de pares chave-valor (**Key-Value**) para uma saída vetorial.
 
@@ -115,7 +115,7 @@ def scaled_dot_product_attention(
     # 3. ALGORITMOS & ESTRUTURAS DE DADOS (TEORIA DOS GRAFOS)
     {
         "prompt": "Implemente o Algoritmo de Dijkstra para encontrar o caminho mais curto em um grafo ponderado com pesos não-negativos. Analise a complexidade de tempo com Heap Binário.",
-        "response": '''### Análise de Complexidade Assintótica
+        "response": r'''### Análise de Complexidade Assintótica
 
 O algoritmo de Dijkstra calcula a menor distância de um vértice de origem para todos os outros em um grafo direcionado $G = (V, E)$.
 
@@ -184,7 +184,7 @@ def dijkstra_shortest_path(
     # 4. PROGRAMAÇÃO DINÂMICA & TEORIA DA COMPUTAÇÃO
     {
         "prompt": "Como resolver o Problema da Mochila 0/1 (0-1 Knapsack Problem) usando Programação Dinâmica? Explique a relação de recorrência e forneça a solução com otimização de espaço O(W).",
-        "response": '''### Relação de Recorrência da Programação Dinâmica
+        "response": r'''### Relação de Recorrência da Programação Dinâmica
 
 Seja $DP[i][w]$ o valor máximo possível considerando os primeiros $i$ itens com uma capacidade residual $w$:
 
@@ -236,7 +236,7 @@ assert resultado == 8  # Escolhe o item de peso 5 e valor 8
     # 5. MATEMÁTICA DISCRETA & TEORIA DOS NÚMEROS (CRIPTO RSA)
     {
         "prompt": "Explique o Algoritmo de Euclides Estendido e como encontrar o inverso multiplicativo modular. Implemente em Python e demonstre a aplicação em criptografia RSA.",
-        "response": '''### Fundamentação Teórica
+        "response": r'''### Fundamentação Teórica
 
 O Algoritmo de Euclides Estendido encontra os coeficientes inteiros de Bézout $x$ e $y$ tais que:
 $$a \cdot x + b \cdot y = \gcd(a, b)$$
