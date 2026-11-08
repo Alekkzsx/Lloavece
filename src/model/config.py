@@ -1,33 +1,84 @@
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass
 class LloaveceConfig:
-    """ 
-    O "DNA" do nosso modelo. 
-    Aqui controlamos o tamanho do cérebro da IA alterando essas variáveis.
     """
-    block_size: int = 1024       # Quantos tokens a IA consegue lembrar no contexto
-    vocab_size: int = 16384      # Exatamente o tamanho do nosso dicionário BPE otimizado!
-    n_layer: int = 12            # Quantas camadas de blocos Transformer empilhados
-    n_head: int = 12             # Quantas "cabeças" de atenção paralelas
-    n_embd: int = 768            # O tamanho da dimensão vetorial (a complexidade de cada token)
-    dropout: float = 0.0         # Usamos > 0.0 para evitar que o modelo decore os dados
-    bias: bool = False           # Falso (Moderno - LLaMA): Sem viés nas redes neurais. Deixa a rede mais magra e rápida.
+    Configuração Oficial da Arquitetura Lloavece-Coder.
+    Baseada no estado da arte para modelos de código (RoPE + GQA + SwiGLU + RMSNorm).
+    """
+    vocab_size: int = 32768        # Vocabulário BPE Byte-Fallback otimizado para Código + PT-BR
+    block_size: int = 4096         # Janela de contexto padrão (4K tokens; expansível via RoPE)
+    n_layer: int = 24              # Número de blocos Transformer
+    n_head: int = 14               # Cabeças de atenção para Query
+    n_kv_head: int = 2             # Cabeças de atenção para Key/Value (Grouped Query Attention - GQA)
+    n_embd: int = 896              # Dimensão dos embeddings (d_model)
+    intermediate_size: Optional[int] = None # Dimensão interna do SwiGLU (se None, calculado automaticamente)
+    rope_theta: float = 100000.0   # Frequência base do RoPE (alta para contextos longos de código)
+    norm_eps: float = 1e-6         # Epsilon numérico do RMSNorm
+    dropout: float = 0.0           # Dropout (0.0 para pré-treino com dados maciços)
+    bias: bool = False             # Sem bias em projeções lineares (estilo LLaMA / Mistral)
+    tie_word_embeddings: bool = True # Compartilha pesos de embedding e lm_head
 
     @classmethod
     def from_name(cls, name: str):
-        """ Fábrica de configurações """
-        if name == "micro":
-            # Versão V2 Otimizada (~26 Milhões de parâmetros focados no Transformer).
-            # Roda macio em CPU. D_model 512, 6 camadas.
-            return cls(n_layer=6, n_head=8, n_embd=512, block_size=512, dropout=0.1)
-            
-        elif name == "mini":
-            # Equivalente ao GPT-2 (~100 Milhões). Requer um PC razoável.
-            return cls(n_layer=12, n_head=12, n_embd=768, block_size=512)
-            
-        elif name == "7B":
-            # O MONSTRO OFICIAL DO PLANO. Requer centenas de GPUs de Nuvem para treinar.
-            return cls(n_layer=32, n_head=32, n_embd=4096, block_size=4096)
-            
-        raise ValueError(f"Configuração {name} não reconhecida.")
+        presets = {
+            "test": cls(
+                n_layer=2,
+                n_head=4,
+                n_kv_head=2,
+                n_embd=128,
+                block_size=256,
+                vocab_size=1024,
+            ),
+            "micro": cls(
+                n_layer=6,
+                n_head=8,
+                n_kv_head=2,
+                n_embd=512,
+                block_size=512,
+                vocab_size=1024,
+            ),
+            "0.5B": cls(
+                n_layer=24,
+                n_head=14,
+                n_kv_head=2,
+                n_embd=896,
+                block_size=4096,
+                vocab_size=32768,
+                rope_theta=100000.0,
+            ),
+            "1.5B": cls(
+                n_layer=28,
+                n_head=16,
+                n_kv_head=4,
+                n_embd=1536,
+                block_size=4096,
+                vocab_size=32768,
+                rope_theta=100000.0,
+            ),
+            "3B": cls(
+                n_layer=32,
+                n_head=24,
+                n_kv_head=8,
+                n_embd=2048,
+                block_size=8192,
+                vocab_size=32768,
+                rope_theta=500000.0,
+            ),
+            "7B": cls(
+                n_layer=32,
+                n_head=32,
+                n_kv_head=8,
+                n_embd=4096,
+                block_size=8192,
+                vocab_size=32768,
+                rope_theta=500000.0,
+            ),
+        }
+
+        if name not in presets:
+            available = ", ".join(presets.keys())
+            raise ValueError(f"Preset '{name}' não existe. Escolha entre: {available}")
+
+        return presets[name]

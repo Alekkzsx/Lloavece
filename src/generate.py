@@ -19,7 +19,7 @@ def generate_code(
     print(f"Carregando Lloavece-Coder em {device.upper()}...")
 
     sp = spm.SentencePieceProcessor(model_file=tokenizer_path)
-    ckpt = torch.load(checkpoint_path, map_location=device)
+    ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
     config = ckpt["config"]
 
     model = LloaveceModel(config).to(device)

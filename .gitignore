@@ -34,9 +34,12 @@ venv.bak/
 # Project Specific
 /data/
 !/data/.gitkeep
-!/data/tokenized/
 checkpoints/
-!checkpoints/.gitkeep
+checkpoints_sft/
+*.pt
+*.bin
+*.model
+*.vocab
 
 # IDEs
 .vscode/

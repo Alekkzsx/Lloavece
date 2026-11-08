@@ -52,7 +52,7 @@ def train_sft(
 
     # Carrega Checkpoint Base Pré-Treinado
     print(f"Carregando pesos pré-treinados de {base_checkpoint}...")
-    ckpt = torch.load(base_checkpoint, map_location=device)
+    ckpt = torch.load(base_checkpoint, map_location=device, weights_only=False)
     config = ckpt["config"]
     model = LloaveceModel(config).to(device)
     model.load_state_dict(ckpt["model"])

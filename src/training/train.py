@@ -2,6 +2,7 @@ import os
 import math
 import time
 import argparse
+from contextlib import nullcontext
 import numpy as np
 import torch
 from torch.nn import functional as F
@@ -79,7 +80,7 @@ def main():
     dtype = torch.bfloat16 if (args.precision == "bf16" and device == "cuda" and torch.cuda.is_bf16_supported()) else (
         torch.float16 if (args.precision == "fp16" and device == "cuda") else torch.float32
     )
-    ctx = torch.amp.autocast(device_type=device, dtype=dtype) if device == "cuda" else torch.nullcontext()
+    ctx = torch.amp.autocast(device_type=device, dtype=dtype) if device == "cuda" else nullcontext()
     print(f"Precisão de Treino    : {dtype}")
 
     # Carrega Arquitetura
