@@ -37,6 +37,7 @@ venv.bak/
 checkpoints/
 checkpoints_sft/
 *.pt
+!kimi_k31_pro/Data/*.pt
 *.bin
 *.model
 *.vocab

@@ -1,0 +1,16 @@
+{
+  "model_name": "moonshotai/Kimi-K3.1-Pro",
+  "checkpoint_file": "/home/alekkzsx/Documents/Github/Lloavece/kimi_k31_pro/Data/kimi_k31_pro_kbit_1m.pt",
+  "file_size_bytes": 2203271,
+  "file_size_formatted": "2.10 MB",
+  "context_window": 1048576,
+  "context_window_formatted": "1,000,000 tokens (1M)",
+  "rank": 4,
+  "hidden_size": 7168,
+  "intermediate_size": 33792,
+  "num_layers": 93,
+  "num_kbit_tensors": 837,
+  "real_norm_tensors": 7,
+  "compression_ratio": "1319.4x",
+  "status": "ready"
+}

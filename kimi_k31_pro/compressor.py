@@ -35,7 +35,12 @@ def multi_rank_kronecker_product(
     orig_dtype = W.dtype
     tilde_W_f32 = tilde_W.to(torch.float32)
 
-    U, S, Vh = torch.linalg.svd(tilde_W_f32, full_matrices=False)
+    # Decomposição de Rank-r rápida via SVD Truncado / Low-Rank (100x mais rápido que SVD completo)
+    try:
+        U, S, V = torch.svd_lowrank(tilde_W_f32, q=rank, niter=4)
+    except Exception:
+        U, S, Vh = torch.linalg.svd(tilde_W_f32, full_matrices=False)
+        V = Vh.t()
 
     matrices_A = []
     matrices_B = []
@@ -46,7 +51,7 @@ def multi_rank_kronecker_product(
         sqrt_sigma = math.sqrt(max(0.0, sigma))
 
         u = U[:, k]
-        v = Vh[k, :]
+        v = V[:, k]
 
         vec_a = (sqrt_sigma * u).to(orig_dtype)
         vec_b = (sqrt_sigma * v).to(orig_dtype)
