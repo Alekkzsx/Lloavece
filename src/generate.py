@@ -13,7 +13,9 @@ def generate_code(
     fim_suffix: str = "",
     max_new_tokens: int = 256,
     temperature: float = 0.2,
-    top_p: float = 0.95
+    top_p: float = 0.95,
+    use_kbit: bool = False,
+    kbit_rank: int = 4
 ):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Carregando Lloavece-Coder em {device.upper()}...")
@@ -24,6 +26,12 @@ def generate_code(
 
     model = LloaveceModel(config).to(device)
     model.load_state_dict(ckpt["model"])
+
+    if use_kbit:
+        from src.export.kbit_compressor import convert_model_to_kbit
+        print(f"\n[⚡ K-BIT ATIVO] Convertendo modelo para inferência 100% Kronecker Multi-Rank (Rank={kbit_rank})...")
+        model = convert_model_to_kbit(model, rank=kbit_rank)
+
     model.eval()
 
     # Prepara input
@@ -66,6 +74,8 @@ if __name__ == "__main__":
     parser.add_argument("--fim_prefix", type=str, default="")
     parser.add_argument("--fim_suffix", type=str, default="")
     parser.add_argument("--max_tokens", type=int, default=256)
+    parser.add_argument("--use_kbit", action="store_true", help="Ativa compressão K-Bit Multi-Rank para inferência leve")
+    parser.add_argument("--kbit_rank", type=int, default=4, help="Rank da decomposição de Kronecker (padrão: 4)")
     args = parser.parse_args()
 
     generate_code(
@@ -74,5 +84,7 @@ if __name__ == "__main__":
         prompt=args.prompt,
         fim_prefix=args.fim_prefix,
         fim_suffix=args.fim_suffix,
-        max_new_tokens=args.max_tokens
+        max_new_tokens=args.max_tokens,
+        use_kbit=args.use_kbit,
+        kbit_rank=args.kbit_rank
     )
