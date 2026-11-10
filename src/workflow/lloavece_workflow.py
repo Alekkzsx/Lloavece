@@ -5,7 +5,11 @@ import time
 import random
 import urllib.request
 from typing import Dict, List, Any, Optional, Tuple
-import torch
+
+try:
+    import torch
+except ImportError:
+    torch = None
 
 class LloaveceWorkflow:
     """
@@ -69,7 +73,7 @@ class LloaveceWorkflow:
 
     def _load_kbit_fleet_metadata(self):
         """Carrega os checkpoints K-Bit dos 5 modelos livres se disponíveis no Drive/disco."""
-        if not os.path.exists(self.kbit_fleet_dir):
+        if torch is None or not os.path.exists(self.kbit_fleet_dir):
             return
         for m in self.models:
             safe_name = m["name"].replace("/", "--")
@@ -96,7 +100,7 @@ class LloaveceWorkflow:
             return self._neural_model is not None
 
         self._neural_load_attempted = True
-        if not torch.cuda.is_available() and not os.environ.get("LLOAVECE_FORCE_CPU_LLM"):
+        if torch is None or (not torch.cuda.is_available() and not os.environ.get("LLOAVECE_FORCE_CPU_LLM")):
             return False
 
         model_id = os.environ.get("LLOAVECE_BACKBONE_MODEL", "Qwen/Qwen2.5-Coder-3B-Instruct")

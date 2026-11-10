@@ -8,7 +8,11 @@ import shutil
 import asyncio
 import argparse
 import subprocess
-import torch
+
+try:
+    import torch
+except ImportError:
+    torch = None
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +49,7 @@ app.add_middleware(
 server_state = {
     "model": None,
     "tokenizer": None,
-    "device": "cuda" if torch.cuda.is_available() else "cpu",
+    "device": "cuda" if (torch and torch.cuda.is_available()) else "cpu",
     "context_window": MAX_CONTEXT_WINDOW,
     "workflow": LloaveceWorkflow()
 }
@@ -364,7 +368,7 @@ def start_cloudflared_tunnel(port: int = 7860) -> Optional[str]:
 def start_server(port: int = 7860, preload_gpu: bool = True):
     import uvicorn
 
-    if preload_gpu and torch.cuda.is_available():
+    if preload_gpu and torch and torch.cuda.is_available():
         server_state["workflow"]._ensure_neural_engine()
 
     cf_url = start_cloudflared_tunnel(port)
