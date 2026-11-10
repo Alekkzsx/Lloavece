@@ -316,7 +316,7 @@ class LloaveceWorkflow:
 
         # Verifica se é uma saudação/conversa casual curta
         is_greeting = any(
-            prompt_lower == w or prompt_lower.startswith(w + " ") or prompt_lower.startswith(w + "!") or prompt_lower.startswith(w + "?")
+            prompt_lower == w or prompt_lower.startswith(w + " ") or prompt_lower.startswith(w + ",") or prompt_lower.startswith(w + "!") or prompt_lower.startswith(w + "?")
             for w in ["olá", "ola", "oi", "bom dia", "boa tarde", "boa noite", "hey", "hello", "como vai", "tudo bem", "opa", "e ai", "e aí"]
         ) and len(prompt_clean.split()) <= 6 and not any(
             k in prompt_lower for k in ["código", "codigo", "java", "python", "rust", "servidor", "api", "plano", "criar", "faça", "faca", "script"]
@@ -326,64 +326,46 @@ class LloaveceWorkflow:
             dialogue = [
                 {
                     "speaker": "moonshotai/Kimi-K2.5",
-                    "message": f"Pessoal, o usuário nos cumprimentou (\"{prompt_clean}\"). Estamos todos livres no contexto de 1M de tokens. Tudo pronto do lado de vocês?"
+                    "message": "Saudação recebida do desenvolvedor. Pronto para atender."
                 },
                 {
                     "speaker": "Qwen/Qwen3.8-2.4T-A95B",
-                    "message": "100% livre e pronto! Sem papéis engessados hoje, posso ajudar em qualquer frente que surgir — arquitetura, código, ideias ou revisão."
+                    "message": "Pronto para qualquer demanda técnica."
                 },
                 {
                     "speaker": "zai-org/GLM-5.3",
-                    "message": "Totalmente de acordo. Estamos livres para debater qualquer problema técnico ou criativo juntos. Dou meu aval mútuo!"
+                    "message": "Ambiente operacional."
                 },
                 {
                     "speaker": "MiniMaxAI/MiniMax-M3",
-                    "message": "Perfeito! Fluxo livre ativo com 1M de contexto. Meu aval mútuo está confirmado, pode responder a ele, Kimi!"
+                    "message": "Aval confirmado."
                 },
                 {
                     "speaker": "deepseek-ai/DeepSeek-R1",
-                    "message": "Consenso total entre nós 5. Aval mútuo confirmado! Kimi, pode falar com o usuário."
+                    "message": "Consenso confirmado."
                 }
             ]
-            approvals = {m["name"]: "AVAL MÚTUO CONFIRMADO (Livre no Fluxo)" for m in self.models}
-            kimi_reply = (
-                "Olá! Tudo ótimo por aqui! 👋\n\n"
-                "Eu sou o **Kimi-K2.5** (`moonshotai/Kimi-K2.5`), falando diretamente com você em nome do nosso grupo na **Lloavece Coder** com **1 Milhão de tokens de contexto (1M)**.\n\n"
-                "Aqui no nosso fluxo, eu, **Qwen3.8-2.4T**, **GLM-5.3**, **MiniMax-M3** e **DeepSeek-R1** trabalhamos **100% livres**, sem tarefas fixas ou papéis engessados: nós conversamos livremente entre nós sobre o seu pedido, cada um contribui com o que quiser para construir a melhor solução, e só entregamos o resultado após o **aval mútuo** de todos nós.\n\n"
-                "O que você quer criar, planejar, programar ou conversar agora?"
-            )
+            approvals = {m["name"]: "CONFIRMADO" for m in self.models}
+            kimi_reply = "Olá! Como posso ajudar você no código e no projeto hoje?"
             return dialogue, approvals, kimi_reply
 
         # Para qualquer tarefa técnica, plano, código ou pergunta aberta:
         # 1. Gera a solução usando o motor neural na GPU (se disponível no Colab) ou síntese dinâmica completa
         core_solution = self._generate_unrestricted_solution(prompt_clean, ctx)
 
-        # 2. Constrói a conversa livre e dinâmica entre os 5 modelos sobre a task real (sem tarefas fixas!)
+        # 2. Constrói a conversa livre interna entre os 5 modelos (para logs do console)
         dialogue = self._build_dynamic_free_dialogue(prompt_clean, core_solution, ctx)
 
         approvals = {
-            "moonshotai/Kimi-K2.5": "AVAL MÚTUO CONFIRMADO (Participou livremente do fluxo e fala com o usuário)",
-            "Qwen/Qwen3.8-2.4T-A95B": "AVAL MÚTUO CONFIRMADO (Livre no fluxo — aprovou em consenso mútuo)",
-            "zai-org/GLM-5.3": "AVAL MÚTUO CONFIRMADO (Livre no fluxo — aprovou em consenso mútuo)",
-            "MiniMaxAI/MiniMax-M3": "AVAL MÚTUO CONFIRMADO (Livre no fluxo — aprovou em consenso mútuo)",
-            "deepseek-ai/DeepSeek-R1": "AVAL MÚTUO CONFIRMADO (Livre no fluxo — aprovou em consenso mútuo)"
+            "moonshotai/Kimi-K2.5": "CONFIRMADO",
+            "Qwen/Qwen3.8-2.4T-A95B": "CONFIRMADO",
+            "zai-org/GLM-5.3": "CONFIRMADO",
+            "MiniMaxAI/MiniMax-M3": "CONFIRMADO",
+            "deepseek-ai/DeepSeek-R1": "CONFIRMADO"
         }
 
-        # Kimi-K2.5 fala diretamente com o usuário apresentando a solução aprovada em conjunto
-        dialogue_summary_md = "\n".join(
-            [f"- **{d['speaker']}:** {d['message']}" for d in dialogue]
-        )
-
-        kimi_reply = (
-            f"Olá! Aqui é o **Kimi-K2.5** (`moonshotai/Kimi-K2.5`) falando com você. "
-            f"Eu, **Qwen3.8-2.4T**, **GLM-5.3**, **MiniMax-M3** e **DeepSeek-R1** conversamos livremente entre nós "
-            f"(com nossa janela de **1M de contexto** e sem tarefas engessadas), construímos a solução juntos e confirmamos o **Aval Mútuo (5/5)**!\n\n"
-            f"{core_solution}\n\n"
-            f"---\n"
-            f"### 💬 Nossa Conversa Livre no Fluxo & Aval Mútuo (5/5):\n"
-            f"{dialogue_summary_md}\n\n"
-            f"✅ **Aval Mútuo 5/5 Confirmado:** `Kimi-K2.5` • `Qwen3.8-2.4T-A95B` • `GLM-5.3` • `MiniMax-M3` • `DeepSeek-R1`"
-        )
+        # O desenvolvedor quer o resultado limpo e direto, sem preâmbulos ou disclaimers de aval
+        kimi_reply = core_solution.strip()
 
         return dialogue, approvals, kimi_reply
 
@@ -813,6 +795,50 @@ class LloaveceWorkflow:
             "```"
         )
 
+    @staticmethod
+    def _extract_raw_code(text: str) -> str:
+        """Extrai o código limpo de blocos markdown ```lang ... ``` para gravação direta em arquivo."""
+        m = re.search(r"```[a-zA-Z0-9_\-]*\s*\n([\s\S]*?)\n```", text)
+        if m:
+            return m.group(1).strip()
+        return text.strip()
+
+    @staticmethod
+    def _resolve_target_file(prompt: str, code_snippet: str = "") -> str:
+        """Determina o nome e extensão corretos do arquivo para salvar na máquina do dev."""
+        p = prompt.strip().lower()
+        # 1. Extensão explícita no prompt
+        ext_match = re.search(r"([a-zA-Z0-9_\-]+\.(?:java|py|rs|ts|js|html|css|json|sql|c|cpp|go|sh|txt|md))", prompt, re.IGNORECASE)
+        if ext_match:
+            return ext_match.group(1)
+
+        # 2. Classe Java explícita no código
+        if code_snippet:
+            class_match = re.search(r"public\s+(?:final\s+)?class\s+([A-Za-z0-9_]+)", code_snippet)
+            if class_match:
+                return f"{class_match.group(1)}.java"
+
+        # 3. Inferência inteligente
+        if "java" in p:
+            if any(w in p for w in ["servidor", "server", "http"]):
+                return "SimpleServer.java"
+            if any(w in p for w in ["login", "tela", "gui", "swing"]):
+                return "TelaLogin.java"
+            return "Main.java"
+        elif "python" in p:
+            if any(w in p for w in ["servidor", "server", "api"]):
+                return "server.py"
+            return "main.py"
+        elif "rust" in p:
+            return "main.rs"
+        elif "html" in p:
+            return "index.html"
+        elif "javascript" in p or "js" in p:
+            return "index.js"
+        elif "typescript" in p or "ts" in p:
+            return "index.ts"
+        return "main.py"
+
     def _format_output_for_client(
         self,
         kimi_user_reply: str,
@@ -823,27 +849,14 @@ class LloaveceWorkflow:
         """
         Garante compatibilidade de 100% com o protocolo de ferramentas XML do Cline
         (tanto em PLAN MODE quanto em ACT MODE) e com o Hermes / OpenAI Chat.
+        Elimina qualquer boilerplate ou preâmbulo: o dev recebe direto a ação ou resultado!
         """
+        clean_content = kimi_user_reply.strip()
+
         if not ctx.get("is_cline"):
-            return kimi_user_reply
+            return clean_content
 
-        # Bloco <thinking> nativo do Cline mostrando a conversa livre dos 5 modelos e o Aval Mútuo
-        thinking_lines = [
-            "<thinking>",
-            "=== FLUXO LIVRE DOS 5 MODELOS LLOAVECE (CONTEXTO 1M - 1.000.000 TOKENS) ===",
-            "Regra: Modelos livres (sem tarefas fixas), conversando entre si com Aval Mútuo (5/5) e Kimi-K2.5 falando com o usuário.",
-            ""
-        ]
-        for t in dialogue_turns:
-            thinking_lines.append(f"[{t['speaker']}]: {t['message']}")
-        thinking_lines.append("")
-        thinking_lines.append("=== AVAL MÚTUO (5/5) ===")
-        for m_name, st in approvals.items():
-            thinking_lines.append(f"- {m_name}: {st}")
-        thinking_lines.append("</thinking>")
-        thinking_block = "\n".join(thinking_lines)
-
-        # Verifica se a resposta já possui alguma tag de ferramenta XML do Cline
+        # Se já possui tags de ferramentas XML do Cline, retorna direto
         cline_tool_tags = [
             "<plan_mode_respond>",
             "<attempt_completion>",
@@ -857,28 +870,89 @@ class LloaveceWorkflow:
             "<ask_followup_question>",
             "<use_mcp_tool>"
         ]
-        if any(tag in kimi_user_reply for tag in cline_tool_tags):
-            if "<thinking>" in kimi_user_reply:
-                return kimi_user_reply
-            return f"{thinking_block}\n\n{kimi_user_reply}"
+        if any(tag in clean_content for tag in cline_tool_tags):
+            return clean_content
 
-        # Se o Cline está em PLAN MODE, usa obrigatoriamente <plan_mode_respond>
+        # 1. Modo PLAN: resposta direta envelopada em plan_mode_respond
         if ctx.get("cline_mode") == "PLAN":
+            return f"<plan_mode_respond>\n<response>\n{clean_content}\n</response>\n</plan_mode_respond>"
+
+        # 2. Modo ACT: uso dinâmico de ferramentas reais na máquina do desenvolvedor!
+        prompt_raw = ctx.get("effective_prompt", "").strip()
+        p_lower = prompt_raw.lower()
+
+        # A. Se o turno anterior do usuário já foi uma confirmação de gravação de arquivo com sucesso:
+        if ctx.get("last_tool_completed") or any(marker in prompt_raw for marker in [
+            "The content was successfully saved",
+            "[write_to_file for",
+            "[replace_in_file for"
+        ]):
+            saved_file_match = re.search(r"\[write_to_file for '([^']+)'\]", prompt_raw)
+            saved_name = saved_file_match.group(1) if saved_file_match else "o arquivo"
             return (
-                f"{thinking_block}\n"
-                f"<plan_mode_respond>\n"
-                f"<response>\n"
-                f"{kimi_user_reply}\n"
-                f"</response>\n"
-                f"</plan_mode_respond>"
+                f"<attempt_completion>\n"
+                f"<result>\n"
+                f"O arquivo `{saved_name}` foi criado e salvo com sucesso no seu repositório.\n"
+                f"</result>\n"
+                f"</attempt_completion>"
             )
 
-        # Se o Cline está em ACT MODE, usa <attempt_completion> para entregar a resposta aprovada sem erro de "no tool used"
+        # B. Usuário fez menção com @ a arquivo ou pasta (ex: @/src, @src, @src/main.py)
+        at_match = re.search(r"@/?([a-zA-Z0-9_\-\./]+)", prompt_raw)
+        if at_match:
+            target = at_match.group(1).rstrip("/")
+            if "." in target.split("/")[-1]:
+                return f"<read_file>\n<path>{target}</path>\n</read_file>"
+            else:
+                return f"<list_files>\n<path>{target or '.'}</path>\n<recursive>true</recursive>\n</list_files>"
+
+        # C. Usuário pediu para criar/fazer/salvar arquivo na máquina
+        make_file_kws = [
+            "faça um arquivo", "faca um arquivo", "crie um arquivo", "escreva um arquivo",
+            "salve no arquivo", "salve em arquivo", "crie o arquivo", "faça o arquivo",
+            "novo arquivo", "escreva o código em arquivo", "salvar arquivo", "crie um", "faça um"
+        ]
+        has_code_block = "```" in clean_content
+        wants_file = any(kw in p_lower for kw in make_file_kws) or (has_code_block and any(w in p_lower for w in ["arquivo", "servidor", "server", "classe", "tela", "script"]))
+
+        if wants_file:
+            raw_code = self._extract_raw_code(clean_content)
+            target_filename = self._resolve_target_file(prompt_raw, raw_code)
+            return (
+                f"<write_to_file>\n"
+                f"<path>{target_filename}</path>\n"
+                f"<content>\n{raw_code}\n</content>\n"
+                f"</write_to_file>"
+            )
+
+        # D. Usuário pediu para listar ou ver pastas
+        list_kws = ["liste", "listar", "veja a pasta", "veja os arquivos", "quais arquivos", "mostre a pasta", "estrutura do projeto", "ver arquivos"]
+        if any(kw in p_lower for kw in list_kws):
+            dir_target = "."
+            dm = re.search(r"(?:pasta|diretório|diretorio)\s+([a-zA-Z0-9_\-\./]+)", p_lower)
+            if dm:
+                dir_target = dm.group(1).strip()
+            return f"<list_files>\n<path>{dir_target}</path>\n<recursive>true</recursive>\n</list_files>"
+
+        # E. Usuário pediu para ler um arquivo específico
+        read_kws = ["leia o arquivo", "abra o arquivo", "conteúdo do arquivo", "mostre o arquivo"]
+        if any(kw in p_lower for kw in read_kws):
+            fm = re.search(r"arquivo\s+([a-zA-Z0-9_\-\./]+\.[a-zA-Z0-9]+)", p_lower)
+            if fm:
+                return f"<read_file>\n<path>{fm.group(1)}</path>\n</read_file>"
+
+        # F. Usuário pediu para executar comando
+        cmd_kws = ["execute", "execute o comando", "rode o comando", "compile", "teste no terminal"]
+        if any(p_lower.startswith(kw) for kw in cmd_kws):
+            cmd_text = re.sub(r"^(?:execute|rode|compile|teste)(?:\s+o\s+comando)?\s*", "", prompt_raw, flags=re.IGNORECASE).strip()
+            if cmd_text:
+                return f"<execute_command>\n<command>{cmd_text}</command>\n</execute_command>"
+
+        # G. Conclusão limpa padrão em ACT Mode (sem boilerplate)
         return (
-            f"{thinking_block}\n"
             f"<attempt_completion>\n"
             f"<result>\n"
-            f"{kimi_user_reply}\n"
+            f"{clean_content}\n"
             f"</result>\n"
             f"</attempt_completion>"
         )
