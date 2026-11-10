@@ -60,22 +60,49 @@ def start_tunnel_server(
 
     try:
         import gradio as gr
+        from src.workflow.lloavece_workflow import LloaveceWorkflow
+        workflow_engine = LloaveceWorkflow()
+
         print("\n" + "=" * 65)
         print("=== INICIANDO TÚNEL PÚBLICO HTTPS PARA A LLOAVECE K-BIT ===")
         print("=== Motor Ativo: Kronecker Multi-Rank 4 + Resíduo Ternário ===")
         print("=" * 65)
 
-        demo = gr.Interface(
-            fn=generate_fn,
-            inputs=[
-                gr.Textbox(lines=4, label="Instrução / Código (PT-BR, Inglês ou Matemática)", value="def dijkstra_grafo(grafo: dict, origem: str):"),
-                gr.Slider(minimum=32, maximum=512, value=128, step=16, label="Máximo de Tokens"),
-                gr.Slider(minimum=0.0, maximum=1.0, value=0.2, step=0.05, label="Temperature")
-            ],
-            outputs=gr.Code(label="Resposta da Lloavece Coder (100% K-Bit Engine)", language="python"),
-            title="🇧🇷 Lloavece Coder - K-Bit Ultra-Lightweight Server",
-            description="API & Interface de Inferência rodando 100% sobre matrizes comprimidas de Kronecker (K-Bit Multi-Rank). Túnel público de alta performance ativo!"
-        )
+        def run_workflow_fn(task_prompt: str):
+            if not task_prompt.strip():
+                return "Digite uma tarefa para o fluxo técnico executar."
+            return workflow_engine.run(task_prompt)
+
+        with gr.Blocks(title="🇧🇷 Lloavece Coder - K-Bit Multi-Agent Workflow") as demo:
+            gr.Markdown(
+                "# 🇧🇷 Lloavece Coder - K-Bit Ultra-Lightweight Suite (2026)\n"
+                "**Plataforma de Inferência e Fluxo Técnico:** Motor K-Bit Multi-Rank com decomposição de Kronecker.\n"
+                "Sem políticas de persona aplicadas nesta versão de testes técnicos."
+            )
+
+            with gr.Tab("⚡ Inferência Rápida K-Bit"):
+                with gr.Row():
+                    with gr.Column():
+                        prompt_input = gr.Textbox(lines=4, label="Instrução / Código", value="def dijkstra_grafo(grafo: dict, origem: str):")
+                        max_tokens = gr.Slider(minimum=32, maximum=512, value=128, step=16, label="Máximo de Tokens")
+                        temperature = gr.Slider(minimum=0.0, maximum=1.0, value=0.2, step=0.05, label="Temperature")
+                        submit_btn = gr.Button("⚡ Gerar Código via K-Bit", variant="primary")
+                    with gr.Column():
+                        output_code = gr.Code(label="Resposta do Modelo K-Bit", language="python")
+                submit_btn.click(generate_fn, inputs=[prompt_input, max_tokens, temperature], outputs=output_code)
+
+            with gr.Tab("⚙️ Fluxo de Trabalho Técnico da Frota (Kimi + Especialistas + DeepSeek-R1)"):
+                with gr.Row():
+                    with gr.Column():
+                        task_input = gr.Textbox(
+                            lines=4,
+                            label="Especificação da Demanda Técnica",
+                            value="Criar um microserviço em Rust com banco de dados PostgreSQL, Docker e auditoria de segurança"
+                        )
+                        run_btn = gr.Button("🚀 Disparar Fluxo Técnico Completo", variant="primary")
+                    with gr.Column():
+                        workflow_output = gr.Markdown(label="Relatório & Código Integrado da Frota")
+                run_btn.click(run_workflow_fn, inputs=[task_input], outputs=workflow_output)
 
         demo.launch(server_name="0.0.0.0", server_port=port, share=share)
 
