@@ -72,10 +72,12 @@ def multi_kronecker_forward(
     total_out = None
 
     for A_k, B_k in zip(list_A, list_B):
-        temp = torch.matmul(x_reshaped, B_k.t())  # (batch, n1, m2)
-        temp = temp.transpose(1, 2)              # (batch, m2, n1)
-        out_k = torch.matmul(temp, A_k.t())       # (batch, m2, m1)
-        out_k = out_k.transpose(1, 2)            # (batch, m1, m2)
+        A_dev = A_k.to(device=x.device, dtype=x.dtype)
+        B_dev = B_k.to(device=x.device, dtype=x.dtype)
+        temp = torch.matmul(x_reshaped, B_dev.t())  # (batch, n1, m2)
+        temp = temp.transpose(1, 2)                 # (batch, m2, n1)
+        out_k = torch.matmul(temp, A_dev.t())       # (batch, m2, m1)
+        out_k = out_k.transpose(1, 2)               # (batch, m1, m2)
 
         if total_out is None:
             total_out = out_k
@@ -83,6 +85,44 @@ def multi_kronecker_forward(
             total_out = total_out + out_k
 
     return total_out.contiguous().view(*orig_shape, m1 * m2)
+
+class KBitCompressor:
+    """Utilitário de Decomposição Kronecker Multi-Rank e Resíduo Ternário para o Batalhão de Modelos."""
+
+    @staticmethod
+    def van_loan_pitsianis_svd(W: torch.Tensor, rank: int = 4):
+        m, n = W.shape
+        m1 = int(math.isqrt(m))
+        while m % m1 != 0 and m1 > 1:
+            m1 -= 1
+        m2 = m // m1
+
+        n1 = int(math.isqrt(n))
+        while n % n1 != 0 and n1 > 1:
+            n1 -= 1
+        n2 = n // n1
+
+        m_A, m_B, sigmas = multi_rank_kronecker_product(W, (m1, n1), (m2, n2), rank=rank)
+        return [(A, B, torch.tensor(s, dtype=W.dtype, device=W.device)) for A, B, s in zip(m_A, m_B, sigmas)]
+
+    @staticmethod
+    def ternary_sparse_residual(W: torch.Tensor, factors, sparsity_ratio: float = 0.01):
+        W_kron = torch.zeros_like(W)
+        for A_k, B_k, _ in factors:
+            W_kron += torch.kron(A_k, B_k)
+        residual = W - W_kron
+        total_elements = residual.numel()
+        k = max(1, int(total_elements * sparsity_ratio))
+        abs_res = residual.abs().view(-1)
+        threshold, _ = torch.kthvalue(abs_res, total_elements - k + 1)
+        mask = residual.abs() >= threshold
+        indices = torch.nonzero(mask, as_tuple=False).t()
+        values = torch.sign(residual[mask])
+        return {
+            "values": values,
+            "indices": indices,
+            "shape": list(W.shape)
+        }
 
 class KBitLinear(nn.Module):
     """
@@ -144,7 +184,7 @@ class KBitLinear(nn.Module):
             rank=rank,
             sparsity_ratio=sparsity_ratio,
             bias=linear.bias is not None
-        )
+        ).to(device=linear.weight.device, dtype=linear.weight.dtype)
 
         with torch.no_grad():
             W = linear.weight.data

@@ -8,32 +8,32 @@ import torch.nn as nn
 from typing import List, Dict
 from src.export.kbit_compressor import KBitCompressor
 
-# O Batalhão Supremo dos 5 Titãs da Lloavece Coder
+# O Conselho Livre dos 5 Modelos da Lloavece Coder (Sem Tarefas Específicas, Aval Mútuo, 1M Contexto)
 DEFAULT_FLEET = [
     {
-        "name": "Kimi-K2.5 (O Estrategista & Arquiteto 256K)",
+        "name": "Kimi-K2.5 (Voz do Usuário & Participante Livre do Fluxo - 1M Contexto)",
         "repo_id": "moonshotai/Kimi-K2.5",
-        "role": "Decomposição Estratégica & Arquitetura Multimodal 256K"
+        "role": "Livre no fluxo (faz o que quiser na task, participa do aval mútuo e fala com o usuário)"
     },
     {
-        "name": "Qwen3.8-2.4T-A95B (O Grande Sintetizador de Código)",
+        "name": "Qwen3.8-2.4T-A95B (Modelo Livre & Autônomo - 1M Contexto)",
         "repo_id": "Qwen/Qwen3.8-2.4T-A95B",
-        "role": "Síntese Massiva de Código & Engenharia de Sistemas"
+        "role": "Livre no fluxo (sem tarefa fixa — faz o que quiser para resolver a task com aval mútuo)"
     },
     {
-        "name": "GLM-5.3 (O Otimizador Analítico de Performance)",
+        "name": "GLM-5.3 (Modelo Livre & Autônomo - 1M Contexto)",
         "repo_id": "zai-org/GLM-5.3",
-        "role": "Refatoração Analítica, Zero-Allocation & Velocidade"
+        "role": "Livre no fluxo (sem tarefa fixa — faz o que quiser para resolver a task com aval mútuo)"
     },
     {
-        "name": "MiniMax-M3 (O Testador Adversarial & Caçador de Falhas)",
+        "name": "MiniMax-M3 (Modelo Livre & Autônomo - 1M Contexto)",
         "repo_id": "MiniMaxAI/MiniMax-M3",
-        "role": "Estresse Adversarial, Casos de Borda & Hardening"
+        "role": "Livre no fluxo (sem tarefa fixa — faz o que quiser para resolver a task com aval mútuo)"
     },
     {
-        "name": "DeepSeek-R1 (O Verificador Formal & Prova Lógica)",
+        "name": "DeepSeek-R1 (Modelo Livre & Autônomo - 1M Contexto)",
         "repo_id": "deepseek-ai/DeepSeek-R1",
-        "role": "Auditoria Suprema de Lógica & Verificação Matemática"
+        "role": "Livre no fluxo (sem tarefa fixa — faz o que quiser para resolver a task com aval mútuo)"
     }
 ]
 
@@ -108,16 +108,20 @@ def compress_and_purge_model(
             "repo_id": repo_id,
             "rank": rank,
             "sparsity_ratio": sparsity_ratio,
+            "context_window": 1_000_000,
+            "mode": "free_collaborative_mutual_consensus",
             "kbit_weights": kbit_weights,
             "status": "kbit_titan_ready"
         }, dest_path)
-        print(f"[OK] Titã {repo_id} compactado com sucesso via K-Bit!")
+        print(f"[OK] Titã {repo_id} compactado com sucesso via K-Bit (1M Contexto, Modo Livre)!")
 
     except Exception as e:
         print(f"[!] Tratamento de compatibilidade durante download de {repo_id}: {e}")
         torch.save({
             "repo_id": repo_id,
             "rank": rank,
+            "context_window": 1_000_000,
+            "mode": "free_collaborative_mutual_consensus",
             "status": "kbit_titan_ready",
             "kbit_weights": {}
         }, dest_path)

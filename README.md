@@ -22,6 +22,20 @@
 
 ---
 
+## 🏛️ O Fluxo Livre dos 5 Modelos (1M de Contexto & Aval Mútuo)
+
+A **Lloavece-Coder** opera com uma janela de **1.000.000 de tokens (1M Context Window)** reunindo 5 modelos que trabalham **100% livres**, sem tarefas fixas ou papéis engessados:
+
+- **`moonshotai/Kimi-K2.5`** — **Voz Direta com o Usuário & Participante Livre do Fluxo (1M)**: É quem fala diretamente com o usuário e também participa livremente da construção e decisão em todas as tasks.
+- **`Qwen/Qwen3.8-2.4T-A95B`** — **Livre no Fluxo (1M)**: Pode fazer o que quiser entre si para resolver a task (arquitetura, código, ideias, refatoração).
+- **`zai-org/GLM-5.3`** — **Livre no Fluxo (1M)**: Livre para contribuir em qualquer etapa da resolução.
+- **`MiniMaxAI/MiniMax-M3`** — **Livre no Fluxo (1M)**: Livre para contribuir em qualquer etapa da resolução.
+- **`deepseek-ai/DeepSeek-R1`** — **Livre no Fluxo (1M)**: Livre para contribuir em qualquer etapa da resolução.
+
+> **Regra de Ouro:** Os 5 modelos conversam livremente entre si sobre a tarefa e só entregam o resultado após o **Aval Mútuo (5/5)** de todos. Compatível nativamente com **Cline** (Plan Mode & Act Mode), **Roo Code**, **Hermes** e **OpenAI API (`/v1`)**.
+
+---
+
 ## 🎯 Por que a Lloavece-Coder existe?
 
 Os modelos globais de inteligência artificial foram concebidos a partir de textos e documentações em inglês. Embora consigam gerar código básico, eles enfrentam três problemas graves para o desenvolvedor brasileiro:

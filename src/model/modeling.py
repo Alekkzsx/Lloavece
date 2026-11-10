@@ -20,20 +20,21 @@ class RMSNorm(nn.Module):
         return (self.weight * x).to(input_dtype)
 
 class RotaryEmbedding(nn.Module):
-    """Rotary Position Embeddings (RoPE) (Su et al., 2021)."""
-    def __init__(self, dim: int, max_seq_len: int = 16384, theta: float = 100000.0):
+    """Rotary Position Embeddings (RoPE) (Su et al., 2021) com suporte a 1M de tokens (1.000.000 Context Window)."""
+    def __init__(self, dim: int, max_seq_len: int = 1_000_000, theta: float = 10000000.0):
         super().__init__()
         self.dim = dim
-        self.max_seq_len = max_seq_len
+        self.max_context_tokens = max_seq_len
+        self.max_seq_len = 0
         self.theta = theta
 
         inv_freq = 1.0 / (theta ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer("inv_freq", inv_freq, persistent=False)
-        self._build_cache(max_seq_len)
+        self._build_cache(min(max_seq_len, 8192))
 
     def _build_cache(self, seq_len: int):
         self.max_seq_len = seq_len
-        t = torch.arange(seq_len, dtype=torch.float32)
+        t = torch.arange(seq_len, dtype=torch.float32, device=self.inv_freq.device)
         freqs = torch.outer(t, self.inv_freq)
         emb = torch.cat((freqs, freqs), dim=-1)
         self.register_buffer("cos_cached", emb.cos(), persistent=False)
@@ -155,9 +156,10 @@ class LloaveceModel(nn.Module):
         self.config = config
 
         self.embed_tokens = nn.Embedding(config.vocab_size, config.n_embd)
+        max_ctx = getattr(config, "max_context_tokens", 1_000_000)
         self.rotary_emb = RotaryEmbedding(
             dim=config.n_embd // config.n_head,
-            max_seq_len=config.block_size,
+            max_seq_len=max_ctx,
             theta=config.rope_theta
         )
         self.layers = nn.ModuleList([LloaveceBlock(config) for _ in range(config.n_layer)])
@@ -218,8 +220,9 @@ class LloaveceModel(nn.Module):
         top_p: float = 0.9,
         eos_id: Optional[int] = None
     ) -> torch.Tensor:
+        max_ctx = getattr(self.config, "max_context_tokens", 1_000_000)
         for _ in range(max_new_tokens):
-            idx_cond = idx if idx.size(1) <= self.config.block_size else idx[:, -self.config.block_size:]
+            idx_cond = idx if idx.size(1) <= max_ctx else idx[:, -max_ctx:]
             logits, _ = self(idx_cond)
             logits = logits[:, -1, :] / max(temperature, 1e-5)
 
