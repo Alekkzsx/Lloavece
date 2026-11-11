@@ -1,0 +1,70 @@
+# Lloavece Kode - Configuração de Continued Pretraining (CPT)
+
+# Modelo Base
+model:
+  name: "Qwen/Qwen3.8-27B"
+  path: "models/base/qwen3.8-27b"
+  trust_remote_code: true
+
+# Dados
+data:
+  train_file: "data/processed/train.jsonl"
+  eval_file: "data/processed/eval.jsonl"
+  max_seq_length: 4096
+  preprocessing_num_workers: 8
+  overwrite_cache: false
+
+# Treinamento
+training:
+  output_dir: "models/cpt"
+  num_train_epochs: 2
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 2
+  gradient_accumulation_steps: 8
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.03
+  lr_scheduler_type: "cosine"
+  max_grad_norm: 1.0
+  seed: 42
+  
+  # Mixed Precision
+  bf16: true
+  fp16: false
+  
+  # Logging
+  logging_steps: 10
+  logging_dir: "logs/cpt"
+  
+  # Checkpointing
+  save_strategy: "steps"
+  save_steps: 500
+  save_total_limit: 3
+  
+  # Evaluation
+  evaluation_strategy: "steps"
+  eval_steps: 500
+  
+  # Optimização
+  dataloader_num_workers: 4
+  dataloader_pin_memory: true
+  
+  # Resume
+  resume_from_checkpoint: null
+
+# DeepSpeed (opcional, para multi-GPU)
+deepspeed:
+  enabled: false
+  config_file: "training/configs/deepspeed_zero3.json"
+
+# Weights & Biases
+wandb:
+  enabled: true
+  project: "lloavece-kode"
+  run_name: "cpt-run-1"
+  tags: ["cpt", "qwen3.8-27b"]
+
+# Hardware
+hardware:
+  cuda_visible_devices: "0"
+  torch_compile: false

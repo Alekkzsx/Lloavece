@@ -1,265 +1,196 @@
-# Lloavece Kode — Arquitetura Técnica
+# Lloavece Kode - Arquitetura Técnica
 
-## 🇧🇷 Visão Geral
+## 🎯 Visão
 
-**Lloavece Kode** é uma família de modelos de linguagem especializados em código, otimizados para desenvolvedores brasileiros. O diferencial é fluência em **Português do Brasil (PT-BR)** e conhecimento profundo do ecossistema de desenvolvimento brasileiro.
+**Lloavece Kode** é um modelo de IA local especializado em engenharia de software, com fluência nativa em português brasileiro. O objetivo é ser um dos melhores modelos de código open-weight do mundo.
 
-### Princípios Fundamentais
+## 🧠 Modelo Base
 
-1. **100% Local**: Roda offline, sem API calls, sem cloud
-2. **Especializado em Código**: Não é assistente geral, só sabe programar
-3. **Brasileiro Nativo**: PT-BR fluente + contexto de código brasileiro
-4. **Acessível**: Roda em hardware comum (laptops, desktops, servidores)
-5. **Open Source**: Apache 2.0, sem restrições comerciais
+### Qwen3.8-27B
+
+| Aspecto | Especificação |
+|---------|---------------|
+| **Parâmetros** | 27B (dense) |
+| **Licença** | Apache 2.0 (uso comercial liberado) |
+| **Contexto Nativo** | 262,144 tokens |
+| **Contexto Estendido** | Até 1,000,000 tokens (via YaRN) |
+| **Arquitetura** | Causal LM com Vision Encoder |
+| **Camadas** | 64 |
+| **Hidden Dimension** | 5120 |
+| **Vocabulário** | 248,320 tokens |
+
+### Arquitetura Híbrida
+
+```
+16 × (3 × (Gated DeltaNet → FFN) → 1 × (Gated Attention → FFN))
+```
+
+- **Gated DeltaNet**: Attention linear eficiente (48 heads V, 16 heads QK)
+- **Gated Attention**: Attention tradicional (24 heads Q, 4 heads KV)
+- **Feed Forward**: Intermediate dim = 17,408
+
+### Benchmarks Baseline
+
+| Benchmark | Score | Descrição |
+|-----------|-------|-----------|
+| SWE-bench Pro | 61.7 | Resolução de bugs reais |
+| QwenSWEBench | 79.0 | Engenharia de software |
+| Terminal Bench 2.1 | 73.0 | Coding agêntico |
+| DeepSWE 1.1 | 42.2 | Tarefas complexas SWE |
+| NL2Repo-Bench | 42.3 | Geração repo-level |
+
+## 🎨 Features Especiais do Base
+
+- **Thinking Mode**: Controle de raciocínio com `reasoning_effort`
+- **Agentic Capabilities**: Planejamento e execução autônoma
+- **Multimodal**: Compreensão de imagens e vídeos
+- **Multi-Token Prediction**: Treinado com MTP
 
 ---
 
-## 🏗️ Arquitetura da Família
+## 🏗️ Pipeline de Treinamento
 
-### Tamanhos do Modelo
+### Fase 1: Continued Pretraining (CPT)
 
-| Modelo | Params | Tamanho GGUF (Q4_K_M) | RAM Mínima | Hardware Alvo |
-|--------|--------|----------------------|------------|---------------|
-| **lloavece-kode-32b** | 32B | ~19 GB | 24GB+ | GPU (RTX 3090/4090) ou A100 |
-| **lloavece-kode-14b** | 14B | ~8.7 GB | 12GB | Desktop (CPU/GPU) |
-| **lloavece-kode-4b** | 4B | ~2.5 GB | 4-8GB | Laptop (CPU) ← **MVP** |
+**Objetivo**: Especializar o modelo em código de alta qualidade
 
-### Por que 3 Tamanhos?
+- **Duração**: 2-3 semanas
+- **Dados**: 1-5B tokens de código curado
+- **Técnica**: Causal LM training com learning rate baixo (1e-5 a 5e-5)
+- **Ganho esperado**: +5-8% em benchmarks de código
 
-- **32B**: Máxima qualidade, para quem tem hardware
-- **14B**: Equilíbrio qualidade/velocidade, para devs avançados
-- **4B**: **MVP principal**, roda em laptops brasileiros típicos (8GB RAM)
+**Fontes de dados**:
+- GitHub repositories (Python, JavaScript, TypeScript, Java, Go, Rust)
+- Stack Overflow (respostas de alta qualidade)
+- Documentação técnica oficial
+- Repositórios brasileiros de qualidade
+- LeetCode, HackerRank, Codeforces
 
----
+### Fase 2: Supervised Fine-Tuning (SFT)
 
-## 🎯 Pipeline de Treinamento
+**Objetivo**: Alinhar com instruções e português
 
-### Fase 1: Base Model
+- **Duração**: 2-3 semanas
+- **Técnica**: LoRA (Low-Rank Adaptation)
+  - r=16, alpha=32
+  - Aplica em attention layers e MLP
+  - Treina ~1-2% dos parâmetros
+- **Dados**: 500k-1M exemplos de (instrução, resposta)
+- **Learning rate**: 2e-4
+- **Épocas**: 2-3
+- **Ganho esperado**: +10-15% total
 
-**Modelo Base**: `Qwen2.5-Coder-32B-Instruct`
-- Licença: Apache 2.0 (permissiva)
-- Params: 32B (denso)
-- Context: 32K tokens
-- Já treinado em código de alta qualidade
-
-**Por que não treinar do zero?**
-- Treinar 32B do zero custa US$ 1-5M em GPUs
-- Requer cluster de H100/A100 (não viável para projeto independente)
-- Qwen2.5-Coder já é SOTA em código, melhor partir dele
-
-### Fase 2: Continued Pretraining (CPT)
-
-**Objetivo**: Adicionar conhecimento de código em PT-BR
-
-**Dados de Treinamento** (estimativa: 10-50B tokens):
-
-```
-1. Código aberto brasileiro (GitHub)
-   - Repositórios com README em PT-BR
-   - Comentários em português
-   - Variáveis com nomes em PT-BR
-
-2. Documentação técnica brasileira
-   - Tutoriais em português
-   - Blog posts de devs brasileiros
-   - Stack Overflow em PT-BR
-
-3. APIs e frameworks brasileiros
-   - PIX (BCB)
-   - NFe/SPED (Receita Federal)
-   - LGPD
-   - Gateways: Asaas, Mercado Pago, Efí, PagSeguro
-   - Frameworks nacionais
-
-4. Livros e cursos em PT-BR
-   - Livros de programação traduzidos
-   - Cursos online brasileiros
-   - Documentação oficial traduzida
-```
-
-**Técnicas de Treinamento**:
-- **DeepSpeed ZeRO-3**: Distribui modelo em múltiplas GPUs (se necessário)
-- **FSDP (Fully Sharded Data Parallel)**: PyTorch nativo, otimizado
-- **Gradient Checkpointing**: Reduz uso de memória (trade-off: mais lento)
-- **Mixed Precision (BF16)**: Acelera treino, reduz memória
-- **Learning Rate Schedule**: Cosine annealing com warmup
-
-**Hardware**: A100 (40GB ou 80GB)
-- Tempo estimado: 1-4 semanas (depende do dataset)
-- Custo: ~US$ 500-2000 (cloud) ou uso próprio
-
-### Fase 3: Supervised Fine-Tuning (SFT)
-
-**Objetivo**: Ensinar o modelo a seguir instruções em PT-BR
-
-**Formato de Instruções**:
-
+**Estrutura dos dados**:
 ```json
 {
-  "instruction": "Crie uma função Python que valide um CPF",
+  "instruction": "Escreva uma função que calcule a sequência de Fibonacci",
   "input": "",
-  "output": "def validar_cpf(cpf: str) -> bool:\n    # Remove caracteres não numéricos\n    cpf = ''.join(filter(str.isdigit, cpf))\n    \n    # Verifica se tem 11 dígitos\n    if len(cpf) != 11:\n        return False\n    \n    # Verifica se todos os dígitos são iguais\n    if cpf == cpf[0] * 11:\n        return False\n    \n    # Calcula primeiro dígito verificador\n    soma = sum(int(cpf[i]) * (10 - i) for i in range(9))\n    digito1 = (soma * 10) % 11\n    digito1 = 0 if digito1 == 10 else digito1\n    \n    # Verifica primeiro dígito\n    if int(cpf[9]) != digito1:\n        return False\n    \n    # Calcula segundo dígito verificador\n    soma = sum(int(cpf[i]) * (11 - i) for i in range(10))\n    digito2 = (soma * 10) % 11\n    digito2 = 0 if digito2 == 10 else digito2\n    \n    # Verifica segundo dígito\n    return int(cpf[10]) == digito2"
+  "output": "def fibonacci(n):\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)"
 }
 ```
 
-**Dataset SFT** (estimativa: 50K-200K exemplos):
+### Fase 3: Direct Preference Optimization (DPO)
 
-```
-1. Code Generation (40%)
-   - "Crie uma função que..."
-   - "Implemente um algoritmo de..."
-   - "Escreva um código que..."
+**Objetivo**: Alinhar com preferências de qualidade
 
-2. Code Explanation (20%)
-   - "Explique este código: ..."
-   - "O que esta função faz?"
-   - "Como este algoritmo funciona?"
+- **Duração**: 1 semana
+- **Dados**: 100k-500k pares de (resposta preferida, resposta rejeitada)
+- **Técnica**: DPO com β=0.1
+- **Épocas**: 1-2
+- **Ganho esperado**: +15-20% total
 
-3. Code Review (20%)
-   - "Revise este código e aponte problemas"
-   - "Esta função tem algum bug?"
-   - "Como melhorar este código?"
+**Criação de preferências**:
+- Múltiplas respostas por prompt (5-10)
+- Avaliação por modelo juiz (GPT-4 ou similar)
+- Filtro: diferença de score > 0.2
 
-4. Debugging (15%)
-   - "Por que este código dá erro?"
-   - "Corrija este bug: ..."
-   - "Este código não funciona, por quê?"
+### Fase 4: Self-Improvement Loop
 
-5. Contexto Brasileiro (5%)
-   - "Como integrar PIX no meu sistema?"
-   - "Como validar CPF/CNPJ?"
-   - "Como emitir NFe?"
-```
+**Objetivo**: Auto-aprimoramento iterativo
+
+- **Duração**: 5-6 semanas (5-6 iterações)
+- **Processo**:
+  1. Modelo gera respostas (n=5 por prompt)
+  2. Avalia qualidade (testes + juiz LLM)
+  3. Cria pares (melhor, pior)
+  4. Treina DPO
+  5. Repete
+- **Ganho por iteração**: +2-4%
+- **Ganho total**: +25-30% sobre base
+
+**Critério de parada**:
+- Melhoria < 1% por iteração
+- Ou 6 iterações completadas
+
+### Fase 5: Quantização
+
+**Objetivo**: Otimizar para deployment
 
 **Técnicas**:
-- **Full Fine-Tuning**: Atualiza todos os parâmetros (melhor qualidade, mais lento)
-- **LoRA (Low-Rank Adaptation)**: Treina apenas ~1% dos parâmetros (mais rápido)
-- **QLoRA**: LoRA com quantização 4-bit (mais eficiente em memória)
+- **GGUF Q4_K_M**: Padrão ouro, ~18GB
+- **GGUF Q5_K_M**: Mais qualidade, ~22GB
+- **AWQ 4-bit**: Alternativa rápida, ~16GB
 
-**Recomendação**: Começar com **LoRA** para iterar rápido, depois fazer **Full Fine-Tuning** na versão final.
+**Hardware alvo**:
+- GPU: 24GB+ VRAM (RTX 3090, RTX 4090)
+- RAM: 40GB+ para inferência CPU
 
-### Fase 4: DPO (Direct Preference Optimization)
+### Fase 6: Deploy
 
-**Objetivo**: Melhorar qualidade através de preferências humanas
+**Objetivo**: Integração com desenvolvedores
 
-**Formato**:
-
-```json
-{
-  "prompt": "Crie uma função que calcule a média de uma lista",
-  "chosen": "def calcular_media(numeros: list[float]) -> float:\n    if not numeros:\n        raise ValueError('Lista vazia')\n    return sum(numeros) / len(numeros)",
-  "rejected": "def media(lista):\n    soma = 0\n    for n in lista:\n        soma += n\n    return soma / len(lista)"
-}
-```
-
-**Por que DPO?**
-- Melhora qualidade sem precisar de modelo de recompensa (RLHF é complexo)
-- Ensina o modelo a preferir código limpo, tipado, com tratamento de erros
-- Dataset menor que SFT (5K-20K exemplos)
-
-### Fase 5: Quantização GGUF
-
-**Objetivo**: Reduzir tamanho do modelo para rodar em hardware comum
-
-**Formatos GGUF**:
-
-| Quantização | Tamanho | Perplexidade | Uso |
-|-------------|---------|--------------|-----|
-| **Q4_K_M** | 40% | +2-3% | Principal (melhor equilíbrio) |
-| **Q5_K_M** | 50% | +1-2% | Qualidade superior |
-| **Q8_0** | 80% | +0.5% | Alta qualidade |
-| **F16** | 100% | 0% | Referência (sem compressão) |
-
-**Processo**:
-```bash
-# Converter para GGUF
-python convert.py \
-    --model lloavece-kode-32b \
-    --outfile lloavece-kode-32b-f16.gguf \
-    --outtype f16
-
-# Quantizar
-./quantize lloavece-kode-32b-f16.gguf lloavece-kode-32b-q4_k_m.gguf Q4_K_M
-./quantize lloavece-kode-32b-f16.gguf lloavece-kode-32b-q5_k_m.gguf Q5_K_M
-./quantize lloavece-kode-32b-f16.gguf lloavece-kode-32b-q8_0.gguf Q8_0
-```
-
-### Fase 6: Distilação (para modelos menores)
-
-**Objetivo**: Criar versões 14B e 4B a partir do 32B
-
-**Técnica**: Knowledge Distillation
-- O modelo 32B (teacher) gera respostas de alta qualidade
-- O modelo menor (student) aprende a imitar o teacher
-- Loss: combinação de cross-entropy (ground truth) + KL divergence (teacher)
-
-**Pipeline**:
-```
-Lloavece-Kode-32B (teacher)
-    ↓ Gera respostas para dataset de treino
-Dataset Destilado
-    ↓ Treina modelo menor
-Lloavece-Kode-14B ou Lloavece-Kode-4B (student)
-```
+- **VS Code Extension**: Interface principal
+- **CLI**: Para usuários avançados
+- **API Local**: FastAPI para integrações
 
 ---
 
-## 🛠️ Stack Técnica
+## 📊 Metas de Qualidade
 
-### Treinamento
+### Benchmarks Alvo
 
-```python
-# Frameworks
-PyTorch 2.2+
-Transformers (Hugging Face)
-DeepSpeed ZeRO-3
-FSDP (PyTorch nativo)
-Accelerate
-PEFT (LoRA/QLoRA)
+| Benchmark | Base (Qwen3.8-27B) | Lloavece v1.0 | Melhoria |
+|-----------|-------------------|---------------|----------|
+| SWE-bench Pro | 61.7 | 70-75 | +15% |
+| HumanEval | ~90% | 95-96% | +6% |
+| MBPP | ~85% | 92-93% | +8% |
+| LiveCodeBench | ~55% | 65-70% | +20% |
+| Aider Code Editing | ~60% | 70-75% | +15% |
 
-# Dados
-datasets (Hugging Face)
-tiktoken / sentencepiece (tokenização)
+### Diferenciais
 
-# Monitoramento
-Weights & Biases (W&B)
-TensorBoard
+1. **Português fluente**: Instruções e explicações em PT-BR
+2. **Código brasileiro**: Conhecimento de APIs e frameworks nacionais
+3. **Local-first**: Roda 100% offline
+4. **Open-source**: Apache 2.0, sem restrições
 
-# Hardware
-NVIDIA A100 (40GB ou 80GB)
-CUDA 12.x
-cuDNN 9.x
-```
+---
 
-### Inferência
+## 🛡️ Técnicas Anti-Forgetting
 
-```python
-# Backend
-llama.cpp (GGUF)
-llama-cpp-python (bindings Python)
+### 1. LoRA (Low-Rank Adaptation)
 
-# API
-FastAPI (servidor REST)
-Uvicorn (ASGI server)
+- Treina apenas adaptadores (1-2% dos parâmetros)
+- Base fica congelada → preserva conhecimento geral
+- Reduz catastrophic forgetting em 80%
 
-# CLI
-Click (framework CLI)
-Rich (formatação terminal)
-```
+### 2. Replay Buffer
 
-### VS Code Extension
+- Mistura 70% dados de código + 30% dados gerais
+- Previne que o modelo "esqueça" capacidades gerais
+- Avalia capacidades gerais a cada checkpoint
 
-```javascript
-// Linguagem
-TypeScript
+### 3. Checkpoints Frequentes
 
-// Framework
-VS Code Extension API
-webpack (build)
+- Salva modelo a cada 500 steps
+- Permite rollback se qualidade degradar
+- Mantém 10+ versões para seleção
 
-// Integração
-llama-cpp-python (via API local)
-```
+### 4. Avaliação Dual
+
+- Testa benchmarks de código (HumanEval, MBPP, etc)
+- Testa capacidades gerais (MMLU, HellaSwag)
+- Para se geral degradar > 5%
 
 ---
 
@@ -267,197 +198,204 @@ llama-cpp-python (via API local)
 
 ```
 Lloavece/
-├── ARCHITECTURE.md          # Este documento
-├── README.md                # Visão geral do projeto
-├── LICENSE                  # Apache 2.0
+├── data/
+│   ├── raw/                    # Dados brutos
+│   ├── processed/              # Dados limpos
+│   ├── sft/                    # Instruções SFT
+│   ├── dpo/                    # Preferências DPO
+│   └── self_improvement/       # Dados do loop
 │
-├── data/                    # Datasets de treinamento
-│   ├── raw/                 # Dados brutos (código, docs, etc)
-│   ├── processed/           # Dados processados (limpos)
-│   ├── sft/                 # Dataset SFT (instruções)
-│   ├── dpo/                 # Dataset DPO (preferências)
-│   └── distillation/        # Dataset de destilação
+├── models/
+│   ├── base/                   # Qwen3.8-27B original
+│   ├── cpt/                    # Após CPT
+│   ├── sft/                    # Após SFT
+│   ├── dpo/                    # Após DPO
+│   ├── self_improvement/       # Iterações do loop
+│   └── gguf/                   # Quantizados GGUF
 │
-├── training/                # Scripts de treinamento
-│   ├── continued_pretraining.py
-│   ├── sft.py
-│   ├── dpo.py
-│   ├── distillation.py
-│   └── configs/
-│       ├── cpt.yaml
-│       ├── sft.yaml
-│       └── dpo.yaml
+├── training/
+│   ├── configs/                # Configurações YAML
+│   │   ├── cpt.yaml
+│   │   ├── sft.yaml
+│   │   ├── dpo.yaml
+│   │   └── self_improvement.yaml
+│   ├── scripts/
+│   │   ├── train_cpt.py
+│   │   ├── train_sft.py
+│   │   ├── train_dpo.py
+│   │   └── self_improvement_loop.py
+│   └── utils/
+│       ├── data_loader.py
+│       ├── evaluation.py
+│       └── metrics.py
 │
-├── models/                  # Modelos treinados
-│   ├── base/                # Modelo base (Qwen2.5-Coder-32B)
-│   ├── cpt/                 # Modelo após continued pretraining
-│   ├── sft/                 # Modelo após SFT
-│   ├── dpo/                 # Modelo após DPO
-│   └── gguf/                # Modelos quantizados (GGUF)
+├── scripts/
+│   ├── setup_environment.py
+│   ├── download_model.py
+│   ├── collect_data.py
+│   ├── curate_data.py
+│   ├── evaluate_model.py
+│   └── quantize_model.py
 │
-├── inference/               # Código de inferência
-│   ├── server.py            # Servidor FastAPI
-│   ├── cli.py               # Interface CLI
-│   └── client.py            # Cliente Python
+├── inference/
+│   ├── llm_server.py           # API FastAPI
+│   ├── code_completion.py      # Autocomplete
+│   ├── code_review.py          # Review de código
+│   └── code_explanation.py     # Explicação de código
 │
-├── extension/               # VS Code Extension
-│   ├── src/
-│   │   ├── extension.ts     # Extensão principal
-│   │   ├── provider.ts      # Provedor de completions
-│   │   └── client.ts        # Cliente da API local
+├── extension/
+│   ├── src/                    # VS Code extension
 │   ├── package.json
-│   └── webpack.config.js
+│   └── README.md
 │
-├── scripts/                 # Scripts auxiliares
-│   ├── download_model.sh    # Download do modelo base
-│   ├── convert_gguf.sh      # Conversão para GGUF
-│   ├── benchmark.py         # Benchmark de performance
-│   └── collect_data.py      # Coleta de dados
+├── docs/
+│   ├── contributing.md
+│   ├── training_guide.md
+│   ├── deployment.md
+│   └── benchmarks.md
 │
-├── notebooks/               # Notebooks Jupyter
-│   ├── exploratory.ipynb    # Análise exploratória
-│   ├── training.ipynb       # Visualização do treino
-│   └── evaluation.ipynb     # Avaliação do modelo
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_evaluation_analysis.ipynb
+│   └── 03_benchmark_results.ipynb
 │
-└── docs/                    # Documentação
-    ├── installation.md      # Como instalar
-    ├── usage.md             # Como usar
-    ├── api.md               # Documentação da API
-    └── contributing.md      # Como contribuir
+├── tests/
+│   ├── test_inference.py
+│   ├── test_training.py
+│   └── test_evaluation.py
+│
+├── ARCHITECTURE.md
+├── README.md
+├── LICENSE
+└── .gitignore
 ```
 
 ---
 
-## 🚀 Roadmap
+## 🔧 Stack Técnica
 
-### v0.1 — Prova de Conceito (4 semanas)
+### Treinamento
 
-**Objetivo**: Provar que a pipeline funciona
+- **Framework**: PyTorch 2.2+
+- **Transformers**: Hugging Face Transformers 4.40+
+- **PEFT**: LoRA, QLoRA
+- **DeepSpeed**: ZeRO-3 (se múltiplas GPUs)
+- **Accelerate**: Distributed training
+- **W&B**: Monitoramento e logging
 
-- [ ] Setup do ambiente (A100, PyTorch, DeepSpeed)
-- [ ] Download do Qwen2.5-Coder-32B-Instruct
-- [ ] Coleta de 1B tokens de código PT-BR
-- [ ] Continued Pretraining (1 época)
-- [ ] Avaliação inicial (perplexidade, qualidade)
+### Dados
 
-**Entrega**: Modelo base funcional, rodando em A100
+- **Coleta**: GitHub API, Stack Exchange API, web scraping
+- **Processamento**: pandas, numpy
+- **Tokenização**: Transformers AutoTokenizer
+- **Storage**: Parquet, JSONL
 
-### v0.2 — Fine-Tuning (6 semanas)
+### Inferência
 
-**Objetivo**: Modelo especializado em código brasileiro
+- **llama.cpp**: Para GGUF (CPU-friendly)
+- **vLLM**: Para inferência rápida em GPU
+- **FastAPI**: API REST
+- **WebSocket**: Para streaming
 
-- [ ] Coleta de 50K instruções SFT
-- [ ] Supervised Fine-Tuning (LoRA)
-- [ ] Avaliação qualitativa (qualidade do código)
-- [ ] Ajustes e iterações
+### Deploy
 
-**Entrega**: Lloavece-Kode-32B funcional, gerando código em PT-BR
-
-### v1.0 — MVP (8 semanas)
-
-**Objetivo**: Produto mínimo viável
-
-- [ ] Dataset DPO (10K preferências)
-- [ ] Direct Preference Optimization
-- [ ] Quantização GGUF (Q4_K_M, Q5_K_M, Q8_0)
-- [ ] Servidor FastAPI
-- [ ] CLI funcional
-- [ ] VS Code Extension (básica)
-
-**Entrega**: Lloavece-Kode-32B completo, rodando localmente
-
-### v1.1 — Modelos Menores (4 semanas)
-
-**Objetivo**: Acessibilidade (laptops comuns)
-
-- [ ] Destilação para 14B
-- [ ] Destilação para 4B
-- [ ] Quantização GGUF (14B e 4B)
-- [ ] Benchmark de performance
-
-**Entrega**: Família completa (32B, 14B, 4B)
-
-### v2.0 — Polimento (contínuo)
-
-**Objetivo**: Qualidade e features
-
-- [ ] Mais dados de treino
-- [ ] Melhorias no SFT/DPO
-- [ ] VS Code Extension avançada
-- [ ] JetBrains Plugin
-- [ ] API pública (opcional)
+- **VS Code Extension**: TypeScript
+- **CLI**: Python (Click/Typer)
+- **Docker**: Para deployment containerizado
 
 ---
 
-## 📊 Métricas de Sucesso
+## 📈 Timeline
 
-### Qualidade do Código
+### Mês 1: Setup e CPT
 
-- **HumanEval** (code generation): >80% (32B), >70% (14B), >60% (4B)
-- **MBPP** (code completion): >75% (32B), >65% (14B), >55% (4B)
-- **CodeBLEU** (qualidade do código): >0.7 (32B), >0.6 (14B), >0.5 (4B)
+- Semana 1: Setup do ambiente, download do modelo
+- Semana 2-3: Coleta e curadoria de dados
+- Semana 3-4: CPT (Continued Pretraining)
+
+### Mês 2: SFT e DPO
+
+- Semana 1-2: SFT com LoRA
+- Semana 3: DPO
+- Semana 4: Avaliação inicial
+
+### Mês 3: Self-Improvement
+
+- Semana 1-6: 5-6 iterações de self-improvement
+- Semana 7: Seleção do melhor checkpoint
+
+### Mês 4: Deploy
+
+- Semana 1: Quantização
+- Semana 2: VS Code Extension (MVP)
+- Semana 3: CLI e API
+- Semana 4: Release v1.0
+
+**Total**: 4 meses para v1.0
+
+---
+
+## 💰 Recursos Necessários
+
+### Hardware
+
+- **GPU**: A100 40GB/80GB (para treino)
+- **RAM**: 64GB+ (para data processing)
+- **Storage**: 500GB+ (modelos + dados)
+- **Cloud**: Colab Pro (para tarefas auxiliares)
+
+### Tempo
+
+- **Treinamento**: ~3 meses
+- **Deploy**: ~1 mês
+- **Iteração contínua**: ongoing
+
+### Custo Estimado
+
+- **Cloud (A100)**: ~$500-1000/mês (se alugar)
+- **Colab Pro**: $10/mês
+- **Google Drive**: Gratuito (5TB disponível)
+- **Total**: ~$500-1500 para v1.0
+
+---
+
+## 🎯 Métricas de Sucesso
+
+### Qualidade
+
+- SWE-bench Pro > 70
+- HumanEval > 95%
+- Aider > 70%
+- Português fluente (avaliação humana)
 
 ### Performance
 
-- **Velocidade de inferência** (tokens/s):
-  - 32B (A100): >50 tok/s
-  - 14B (CPU): >10 tok/s
-  - 4B (CPU): >30 tok/s
-- **Latência** (primeiro token): <500ms
-- **Uso de memória**: Dentro dos limites especificados
+- Inferência > 30 tok/s (GPU)
+- Inferência > 10 tok/s (CPU)
+- Latência < 500ms (autocomplete)
 
-### Qualidade do Português
+### Adoção
 
-- **Fluência**: Avaliação humana (1-5, alvo: >4.5)
-- **Precisão técnica**: Avaliação humana (1-5, alvo: >4.5)
-- **Contexto brasileiro**: Avaliação humana (1-5, alvo: >4.0)
+- 1000+ downloads no primeiro mês
+- 100+ usuários ativos
+- 4.5+ estrelas no GitHub
 
 ---
 
-## 🔒 Licença e Uso
+## 🚀 Próximos Passos
 
-**Licença**: Apache 2.0
-- ✅ Uso comercial permitido
-- ✅ Modificação permitida
-- ✅ Distribuição permitida
-- ✅ Uso privado permitido
-- ❌ Sem garantia (standard)
-
-**Modelo Base**: Qwen2.5-Coder-32B-Instruct (Apache 2.0)
-- Compatível com nossa licença
-- Sem restrições adicionais
-
----
-
-## 🤝 Contribuição
-
-Quer contribuir? Veja `docs/contributing.md`
-
-Áreas prioritárias:
-1. **Coleta de dados**: Repositórios brasileiros, documentação PT-BR
-2. **Dataset SFT**: Instruções de código em PT-BR
-3. **Avaliação**: Testes de qualidade, benchmarks
-4. **VS Code Extension**: Features, UI/UX
-5. **Documentação**: Tutoriais, exemplos
+1. ✅ Setup do ambiente
+2. ✅ Download do Qwen3.8-27B
+3. ⏳ Coleta de dados de código
+4. ⏳ CPT (Continued Pretraining)
+5. ⏳ SFT com LoRA
+6. ⏳ DPO
+7. ⏳ Self-Improvement Loop
+8. ⏳ Quantização
+9. ⏳ Deploy (VS Code Extension)
 
 ---
 
-## 📞 Contato
-
-- **GitHub**: github.com/seu-usuario/lloavece
-- **Discord**: (a definir)
-- **Email**: (a definir)
-
----
-
-## 📚 Referências
-
-1. **Qwen2.5-Coder**: https://github.com/QwenLM/Qwen2.5-Coder
-2. **llama.cpp**: https://github.com/ggerganov/llama.cpp
-3. **DeepSpeed**: https://github.com/microsoft/DeepSpeed
-4. **HumanEval**: https://github.com/openai/human-eval
-5. **MBPP**: https://github.com/google-research/google-research/tree/master/mbpp
-
----
-
-**Última atualização**: 11 de Novembro de 2026
+**Versão**: 1.0  
+**Última atualização**: 2026-11-11  
+**Status**: Em desenvolvimento

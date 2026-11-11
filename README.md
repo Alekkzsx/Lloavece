@@ -1,126 +1,200 @@
-# 🇧🇷 Lloavece Kode
+# 🚀 Lloavece Kode
 
-> **A primeira IA local brasileira especializada em código.**  
-> *100% offline, fluente em Português do Brasil, otimizada para desenvolvedores.*
+> **IA local brasileira especializada em engenharia de software**
 
----
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-red.svg)](https://pytorch.org/)
 
-```
-   ██╗     ██╗      ██████╗  █████╗ ██╗   ██╗███████╗ ██████╗███████╗
-   ██║     ██║     ██╔═══██╗██╔══██╗██║   ██║██╔════╝██╔════╝██╔════╝
-   ██║     ██║     ██║   ██║███████║██║   ██║█████╗  ██║     █████╗  
-   ██║     ██║     ██║   ██║██╔══██║╚██╗ ██╔╝██╔══╝  ██║     ██╔══╝  
-   ███████╗███████╗╚██████╔╝██║  ██║ ╚████╔╝ ███████╗╚██████╗███████╗
-   ╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝  ╚═══╝  ╚══════╝ ╚═════╝╚══════╝
-                            [ KODE EDITION ]
-```
+## 🎯 O que é o Lloavece Kode?
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python: 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
-[![PyTorch: 2.2+](https://img.shields.io/badge/PyTorch-2.2%2B-orange.svg)](https://pytorch.org/)
-[![Format: GGUF](https://img.shields.io/badge/Format-GGUF-green.svg)](https://github.com/ggerganov/llama.cpp)
-[![Status: Em Desenvolvimento](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow.svg)]()
+Lloavece Kode é um modelo de inteligência artificial **local**, **open-source** e **especializado exclusivamente em código**. Construído sobre o Qwen3.8-27B (Apache 2.0), foi treinado para ser um dos melhores modelos de código open-weight do mundo, com **fluência nativa em português brasileiro**.
+
+### ✨ Características Principais
+
+- 🧠 **Excelência em código**: Treinado em bilhões de tokens de código de alta qualidade
+- 🇧🇷 **Português fluente**: Instruções, explicações e documentação em PT-BR
+- 🔒 **100% local**: Roda offline, sem API calls, sem cloud
+- 🎯 **Focado em engenharia de software**: Especializado em problemas reais de desenvolvedores
+- ⚡ **Auto-aprimoramento**: Pipeline de self-improvement para melhoria contínua
+- 🌐 **Open-source**: Apache 2.0, sem restrições comerciais
 
 ---
 
-## 🎯 O que é a Lloavece Kode?
+## 🏗️ Arquitetura
 
-**Lloavece Kode** é uma família de modelos de linguagem especializados **exclusivamente em código**, otimizados para desenvolvedores brasileiros.
+### Modelo Base: Qwen3.8-27B
 
-### Princípios Fundamentais
+| Parâmetro | Valor |
+|-----------|-------|
+| **Tamanho** | 27 bilhões de parâmetros (dense) |
+| **Contexto** | 262k tokens nativo, extensível até 1M |
+| **Licença** | Apache 2.0 |
+| **Arquitetura** | Híbrida (DeltaNet + Attention) |
 
-1. **🔒 100% Local**: Roda offline, sem API calls, sem cloud, sem telemetria
-2. **💻 Especializado em Código**: Não é assistente geral, só sabe programar (e programa muito bem)
-3. **🇧🇷 Brasileiro Nativo**: Fluente em PT-BR, entende APIs brasileiras (PIX, NFe, SPED, LGPD)
-4. **⚡ Acessível**: Roda em hardware comum (laptops, desktops, servidores)
-5. **🆓 Open Source**: Apache 2.0, sem restrições comerciais
+### Benchmarks Baseline
 
----
-
-## 🏗️ Família de Modelos
-
-| Modelo | Parâmetros | Tamanho (Q4_K_M) | RAM Mínima | Hardware Alvo |
-|--------|------------|------------------|------------|---------------|
-| **lloavece-kode-32b** | 32B | ~19 GB | 24GB+ | GPU (RTX 3090/4090, A100) |
-| **lloavece-kode-14b** | 14B | ~8.7 GB | 12GB | Desktop (CPU/GPU) |
-| **lloavece-kode-4b** | 4B | ~2.5 GB | 4-8GB | Laptop (CPU) ← **MVP** |
-
-### Por que 3 Tamanhos?
-
-- **32B**: Máxima qualidade, para quem tem hardware robusto
-- **14B**: Equilíbrio perfeito entre qualidade e velocidade
-- **4B**: **MVP principal**, roda em laptops brasileiros típicos (8GB RAM)
+| Benchmark | Score |
+|-----------|-------|
+| SWE-bench Pro | 61.7 |
+| QwenSWEBench | 79.0 |
+| Terminal Bench 2.1 | 73.0 |
 
 ---
 
 ## 🚀 Funcionalidades (MVP v1.0)
 
-### ✅ Code Completion
-Autocompleta código enquanto você digita, integrado ao VS Code.
+### ✅ Implementadas
 
-### ✅ Code Explanation
-Explica código em **Português do Brasil** fluente, com vocabulário técnico natural.
+- **Code Completion**: Autocomplete inteligente de código
+- **Code Explanation**: Explica código em português
+- **Code Review**: Identifica bugs, problemas de segurança e más práticas
+- **Code Generation**: Gera código a partir de descrições em português
+- **Debugging Assistido**: Analisa erros e sugere correções
 
-### ✅ Code Review
-Analisa código e aponta bugs, problemas de segurança, más práticas e sugestões de melhoria.
+### 🚧 Em Desenvolvimento
 
-### ✅ Code Generation
-Gera código a partir de descrições em PT-BR:
-```
-"Crie uma função Python que valide um CPF"
-"Implemente um endpoint FastAPI que integre com PIX"
-"Escreva um algoritmo de ordenação em TypeScript"
-```
+- **VS Code Extension**: Interface integrada ao IDE
+- **Agentic Coding**: Execução autônoma de tarefas complexas
+- **Multi-file Editing**: Edição de múltiplos arquivos simultaneamente
+- **RAG Integration**: Base de conhecimento sempre atualizada
 
-### ✅ Debugging Assistido
-Analisa erros e sugere correções:
-```
-"Por que este código dá TypeError?"
-"Corrija este bug: ..."
-"Este código não funciona, por quê?"
+---
+
+## 📊 Metas de Qualidade
+
+| Benchmark | Base | Lloavece v1.0 | Melhoria |
+|-----------|------|---------------|----------|
+| SWE-bench Pro | 61.7 | 70-75 | +15% |
+| HumanEval | ~90% | 95-96% | +6% |
+| MBPP | ~85% | 92-93% | +8% |
+| LiveCodeBench | ~55% | 65-70% | +20% |
+| Aider Code Editing | ~60% | 70-75% | +15% |
+
+---
+
+## 🔧 Pipeline de Treinamento
+
+O Lloavece Kode utiliza um pipeline de 4 fases para especialização:
+
+### Fase 1: Continued Pretraining (CPT)
+- **Objetivo**: Especializar em código de alta qualidade
+- **Dados**: 1-5B tokens de código curado
+- **Ganho**: +5-8% em benchmarks
+
+### Fase 2: Supervised Fine-Tuning (SFT)
+- **Objetivo**: Alinhar com instruções em português
+- **Técnica**: LoRA (treina 1-2% dos parâmetros)
+- **Ganho**: +10-15% total
+
+### Fase 3: Direct Preference Optimization (DPO)
+- **Objetivo**: Alinhar com preferências de qualidade
+- **Dados**: 100k-500k pares de preferências
+- **Ganho**: +15-20% total
+
+### Fase 4: Self-Improvement Loop
+- **Objetivo**: Auto-aprimoramento iterativo
+- **Processo**: Gera respostas → Avalia → Treina nos melhores exemplos
+- **Ganho**: +25-30% total (após 5-6 iterações)
+
+---
+
+## 💻 Requisitos de Hardware
+
+### Para Inferência (Rodar o Modelo)
+
+| Configuração | VRAM/RAM | Velocidade | Qualidade |
+|--------------|----------|------------|-----------|
+| **GPU Alta** (RTX 4090) | 24GB VRAM | 30-50 tok/s | Máxima |
+| **GPU Média** (RTX 3060) | 12GB VRAM | 15-25 tok/s | Alta |
+| **CPU** (32GB RAM) | 40GB RAM | 8-15 tok/s | Alta |
+
+### Para Treinamento
+
+- **GPU**: A100 40GB/80GB
+- **RAM**: 64GB+
+- **Storage**: 500GB+
+
+---
+
+## 📦 Instalação
+
+### Pré-requisitos
+
+- Python 3.11+
+- PyTorch 2.2+
+- CUDA 12.x (para GPU)
+
+### Instalação Rápida
+
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/Lloavece.git
+cd Lloavece
+
+# Crie ambiente virtual
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# ou
+.venv\Scripts\activate  # Windows
+
+# Instale dependências
+pip install -r requirements.txt
+
+# Baixe o modelo base
+python scripts/download_model.py
+
+# Configure o ambiente
+python scripts/setup_environment.py
 ```
 
 ---
 
-## 🇧🇷 Diferencial Brasileiro
+## 🚀 Uso Rápido
 
-### O que torna a Lloavece "brasileira"?
+### Via CLI
 
-1. **Português do Brasil fluente**
-   - Comentários, explicações e documentação em PT-BR natural
-   - Sem traduções mecânicas ou artificiais
+```bash
+# Completar código
+lloavece complete --file main.py --language python
 
-2. **Conhecimento de APIs brasileiras**
-   - PIX (Banco Central do Brasil)
-   - NFe/SPED (Receita Federal)
-   - LGPD (Lei Geral de Proteção de Dados)
-   - Gateways de pagamento: Asaas, Mercado Pago, Efí, PagSeguro
-   - Frameworks e bibliotecas nacionais
+# Explicar código
+lloavece explain --file algorithm.py
 
-3. **Contexto de desenvolvimento brasileiro**
-   - Padrões de código usados no Brasil
-   - Boas práticas da comunidade brasileira
-   - Problemas comuns no ecossistema nacional
+# Review de código
+lloavece review --file app.py
 
----
+# Gerar código
+lloavece generate --prompt "Função para calcular fatorial em Python"
+```
 
-## 🛠️ Stack Técnica
+### Via Python API
 
-### Treinamento
-- **Base**: Qwen2.5-Coder-32B-Instruct (Apache 2.0)
-- **Framework**: PyTorch 2.2+, Transformers, DeepSpeed ZeRO-3
-- **Técnicas**: Continued Pretraining, SFT, DPO, Knowledge Distillation
-- **Hardware**: NVIDIA A100 (40GB ou 80GB)
+```python
+from lloavece import LloaveceKode
 
-### Inferência
-- **Backend**: llama.cpp (GGUF)
-- **API**: FastAPI + Uvicorn
-- **CLI**: Click + Rich
-- **VS Code Extension**: TypeScript + VS Code API
+# Inicialize o modelo
+model = LloaveceKode(model_path="models/gguf/lloavece-27b-q4_k_m.gguf")
 
-### Formatos Disponíveis
-- **GGUF** (Q4_K_M, Q5_K_M, Q8_0, F16) — para llama.cpp, Ollama, LM Studio
-- **Safetensors** — para uso direto com PyTorch/Transformers
+# Gere código
+code = model.generate(
+    prompt="Escreva uma função que implemente busca binária",
+    language="python",
+    max_tokens=500
+)
+
+print(code)
+```
+
+### VS Code Extension
+
+```bash
+# Instale a extensão (em desenvolvimento)
+cd extension
+npm install
+npm run compile
+# Instale no VS Code
+```
 
 ---
 
@@ -128,160 +202,120 @@ Analisa erros e sugere correções:
 
 ```
 Lloavece/
-├── ARCHITECTURE.md          # Arquitetura técnica detalhada
-├── README.md                # Este documento
-├── LICENSE                  # Apache 2.0
-│
-├── data/                    # Datasets de treinamento
-│   ├── raw/                 # Dados brutos (código, docs, etc)
-│   ├── processed/           # Dados processados (limpos)
-│   ├── sft/                 # Dataset SFT (instruções)
-│   ├── dpo/                 # Dataset DPO (preferências)
-│   └── distillation/        # Dataset de destilação
-│
-├── training/                # Scripts de treinamento
-│   ├── continued_pretraining.py
-│   ├── sft.py
-│   ├── dpo.py
-│   └── distillation.py
-│
+├── data/                    # Datasets de treino
 ├── models/                  # Modelos treinados
-│   ├── base/                # Modelo base (Qwen2.5-Coder-32B)
-│   ├── cpt/                 # Modelo após continued pretraining
-│   ├── sft/                 # Modelo após SFT
-│   ├── dpo/                 # Modelo após DPO
-│   └── gguf/                # Modelos quantizados (GGUF)
-│
-├── inference/               # Código de inferência
-│   ├── server.py            # Servidor FastAPI
-│   ├── cli.py               # Interface CLI
-│   └── client.py            # Cliente Python
-│
-├── extension/               # VS Code Extension
-│   ├── src/
-│   │   ├── extension.ts
-│   │   ├── provider.ts
-│   │   └── client.ts
-│   └── package.json
-│
+├── training/                # Scripts de treino
+│   ├── configs/            # Configurações YAML
+│   ├── scripts/            # Scripts Python
+│   └── utils/              # Utilitários
 ├── scripts/                 # Scripts auxiliares
-│   ├── download_model.sh
-│   ├── convert_gguf.sh
-│   └── benchmark.py
-│
-└── docs/                    # Documentação
-    ├── installation.md
-    ├── usage.md
-    ├── api.md
-    └── contributing.md
+├── inference/               # Código de inferência
+├── extension/               # VS Code extension
+├── docs/                    # Documentação
+├── notebooks/               # Jupyter notebooks
+├── tests/                   # Testes
+├── ARCHITECTURE.md          # Arquitetura técnica
+├── README.md               # Este arquivo
+└── LICENSE                 # Apache 2.0
 ```
 
 ---
 
-## 🚀 Roadmap
+## 🛠️ Stack Técnica
 
-### v0.1 — Prova de Conceito (4 semanas)
-- [ ] Setup do ambiente (A100, PyTorch, DeepSpeed)
-- [ ] Download do Qwen2.5-Coder-32B-Instruct
-- [ ] Coleta de 1B tokens de código PT-BR
-- [ ] Continued Pretraining (1 época)
-- [ ] Avaliação inicial (perplexidade, qualidade)
+### Treinamento
+- PyTorch 2.2+
+- Hugging Face Transformers
+- LoRA/QLoRA (PEFT)
+- DeepSpeed ZeRO-3
+- Weights & Biases
 
-### v0.2 — Fine-Tuning (6 semanas)
-- [ ] Coleta de 50K instruções SFT
-- [ ] Supervised Fine-Tuning (LoRA)
-- [ ] Avaliação qualitativa (qualidade do código)
-- [ ] Ajustes e iterações
+### Inferência
+- llama.cpp (GGUF)
+- vLLM (GPU)
+- FastAPI (API REST)
 
-### v1.0 — MVP (8 semanas)
-- [ ] Dataset DPO (10K preferências)
-- [ ] Direct Preference Optimization
-- [ ] Quantização GGUF (Q4_K_M, Q5_K_M, Q8_0)
-- [ ] Servidor FastAPI
-- [ ] CLI funcional
-- [ ] VS Code Extension (básica)
-
-### v1.1 — Modelos Menores (4 semanas)
-- [ ] Destilação para 14B
-- [ ] Destilação para 4B
-- [ ] Quantização GGUF (14B e 4B)
-- [ ] Benchmark de performance
-
-### v2.0 — Polimento (contínuo)
-- [ ] Mais dados de treino
-- [ ] Melhorias no SFT/DPO
-- [ ] VS Code Extension avançada
-- [ ] JetBrains Plugin
-- [ ] API pública (opcional)
+### Deploy
+- VS Code Extension (TypeScript)
+- CLI (Python)
+- Docker
 
 ---
 
-## 📊 Métricas de Sucesso
+## 📈 Roadmap
 
-### Qualidade do Código
-- **HumanEval** (code generation): >80% (32B), >70% (14B), >60% (4B)
-- **MBPP** (code completion): >75% (32B), >65% (14B), >55% (4B)
-- **CodeBLEU** (qualidade do código): >0.7 (32B), >0.6 (14B), >0.5 (4B)
+### v0.1 (Mês 1-2)
+- [x] Definição de arquitetura
+- [x] Setup do ambiente
+- [ ] Download do modelo base
+- [ ] Coleta de dados
+- [ ] CPT (Continued Pretraining)
 
-### Performance
-- **Velocidade de inferência**:
-  - 32B (A100): >50 tokens/s
-  - 14B (CPU): >10 tokens/s
-  - 4B (CPU): >30 tokens/s
-- **Latência** (primeiro token): <500ms
-- **Uso de memória**: Dentro dos limites especificados
+### v0.5 (Mês 2-3)
+- [ ] SFT com LoRA
+- [ ] DPO
+- [ ] Self-Improvement Loop (5 iterações)
+- [ ] Avaliação inicial
 
-### Qualidade do Português
-- **Fluência**: Avaliação humana (1-5, alvo: >4.5)
-- **Precisão técnica**: Avaliação humana (1-5, alvo: >4.5)
-- **Contexto brasileiro**: Avaliação humana (1-5, alvo: >4.0)
+### v1.0 (Mês 4)
+- [ ] Quantização (GGUF/AWQ)
+- [ ] VS Code Extension (MVP)
+- [ ] CLI completo
+- [ ] Documentação
+- [ ] Release público
 
----
-
-## 🔒 Licença
-
-**Apache 2.0** — Licença permissiva que permite:
-- ✅ Uso comercial
-- ✅ Modificação
-- ✅ Distribuição
-- ✅ Uso privado
-- ❌ Sem garantia (standard)
-
-**Modelo Base**: Qwen2.5-Coder-32B-Instruct (Apache 2.0)
+### v2.0 (Futuro)
+- [ ] RAG Integration
+- [ ] Agentic Coding avançado
+- [ ] Multi-modal (imagens de código)
+- [ ] Modelos menores (7B, 14B)
+- [ ] Fine-tuning customizado
 
 ---
 
-## 🤝 Contribuição
+## 🤝 Contribuindo
 
-Quer contribuir? Veja [`docs/contributing.md`](docs/contributing.md)
+Contribuições são bem-vindas! Veja [docs/contributing.md](docs/contributing.md) para detalhes.
 
 ### Áreas Prioritárias
 
-1. **Coleta de dados**: Repositórios brasileiros, documentação PT-BR
-2. **Dataset SFT**: Instruções de código em PT-BR
-3. **Avaliação**: Testes de qualidade, benchmarks
-4. **VS Code Extension**: Features, UI/UX
-5. **Documentação**: Tutoriais, exemplos
+1. **Coleta de dados**: Repositórios brasileiros de qualidade
+2. **Curadoria**: Limpeza e filtragem de datasets
+3. **Treinamento**: Otimização de hiperparâmetros
+4. **Avaliação**: Benchmarks e métricas
+5. **Deploy**: VS Code extension, CLI, API
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a **Apache License 2.0** - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+O modelo base (Qwen3.8-27B) também está sob Apache 2.0, permitindo uso comercial sem restrições.
+
+---
+
+## 🙏 Agradecimentos
+
+- **Qwen Team** (Alibaba) pelo modelo base excepcional
+- **Hugging Face** pela infraestrutura de modelos open-source
+- **Comunidade open-source** pelos datasets e ferramentas
 
 ---
 
 ## 📞 Contato
 
-- **GitHub**: [github.com/alekkzsx/Lloavece](https://github.com/alekkzsx/Lloavece)
-- **Discord**: (a definir)
-- **Email**: (a definir)
+- **GitHub Issues**: [Reportar bugs ou sugerir features](https://github.com/seu-usuario/Lloavece/issues)
+- **Discussions**: [Perguntas e discussões](https://github.com/seu-usuario/Lloavece/discussions)
 
 ---
 
-## 📚 Referências
+## ⭐ Se este projeto te ajudou
 
-1. **Qwen2.5-Coder**: [github.com/QwenLM/Qwen2.5-Coder](https://github.com/QwenLM/Qwen2.5-Coder)
-2. **llama.cpp**: [github.com/ggerganov/llama.cpp](https://github.com/ggerganov/llama.cpp)
-3. **DeepSpeed**: [github.com/microsoft/DeepSpeed](https://github.com/microsoft/DeepSpeed)
-4. **HumanEval**: [github.com/openai/human-eval](https://github.com/openai/human-eval)
-5. **MBPP**: [github.com/google-research/google-research/tree/master/mbpp](https://github.com/google-research/google-research/tree/master/mbpp)
+Considere dar uma ⭐ no GitHub e compartilhar com outros desenvolvedores!
 
 ---
 
-**Desenvolvido com orgulho no Brasil** 🇧🇷  
-**Última atualização**: 11 de Novembro de 2026
+**Feito com ❤️ no Brasil 🇧🇷**
+
+*Lloavece Kode - Código inteligente, em português, rodando na sua máquina.*

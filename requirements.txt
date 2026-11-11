@@ -1,0 +1,71 @@
+# Core ML
+torch>=2.2.0
+torchvision>=0.17.0
+torchaudio>=2.2.0
+
+# Hugging Face
+transformers>=4.40.0
+accelerate>=0.28.0
+peft>=0.10.0
+trl>=0.8.0
+datasets>=2.18.0
+tokenizers>=0.15.0
+
+# DeepSpeed (optional, for multi-GPU)
+deepspeed>=0.14.0
+
+# Quantization
+bitsandbytes>=0.43.0
+auto-gptq>=0.7.0
+optimum>=1.18.0
+llama-cpp-python>=0.2.50
+
+# Data Processing
+pandas>=2.2.0
+numpy>=1.26.0
+pyarrow>=15.0.0
+
+# Evaluation
+lm-eval>=0.4.2
+evaluate>=0.4.1
+rouge-score>=0.1.2
+nltk>=3.8.1
+
+# API & Inference
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+websockets>=12.0
+pydantic>=2.6.0
+
+# Monitoring
+wandb>=0.16.0
+tensorboard>=2.16.0
+
+# Utilities
+tqdm>=4.66.0
+requests>=2.31.0
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+click>=8.1.0
+typer>=0.9.0
+rich>=13.7.0
+
+# Code Quality
+pylint>=3.1.0
+flake8>=7.0.0
+black>=24.2.0
+isort>=5.13.0
+mypy>=1.8.0
+
+# Testing
+pytest>=8.0.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.23.0
+
+# Development
+ipython>=8.22.0
+jupyter>=1.0.0
+notebook>=7.1.0
+
+# Git
+gitpython>=3.1.42

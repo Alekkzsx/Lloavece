@@ -1,122 +1,130 @@
-# 🤝 Guia de Contribuição — Lloavece Kode
+# 🤝 Contribuindo com o Lloavece Kode
 
-Obrigado por considerar contribuir com a **Lloavece Kode**! Este documento explica como você pode ajudar a construir a primeira IA local brasileira especializada em código.
+Obrigado pelo interesse em contribuir! Este documento fornece diretrizes para contribuir com o projeto.
+
+## 📋 Índice
+
+- [Código de Conduta](#código-de-conduta)
+- [Como Contribuir](#como-contribuir)
+- [Áreas Prioritárias](#áreas-prioritárias)
+- [Setup de Desenvolvimento](#setup-de-desenvolvimento)
+- [Processo de Contribuição](#processo-de-contribuição)
+- [Estilo de Código](#estilo-de-código)
+- [Reportando Bugs](#reportando-bugs)
+- [Sugerindo Features](#sugerindo-features)
+
+---
+
+## 📜 Código de Conduta
+
+Este projeto adota o [Contributor Covenant](https://www.contributor-covenant.org/). Ao participar, você concorda em manter um ambiente respeitoso e inclusivo.
+
+---
+
+## 🚀 Como Contribuir
+
+Existem várias formas de contribuir:
+
+1. **Reportar bugs** - Encontrou um problema? Abra uma issue!
+2. **Sugerir features** - Tem uma ideia? Compartilhe conosco!
+3. **Melhorar documentação** - Documentação clara é essencial
+4. **Contribuir com código** - Implemente features ou corrija bugs
+5. **Coletar dados** - Ajude a construir datasets de qualidade
+6. **Testar o modelo** - Use e forneça feedback
 
 ---
 
 ## 🎯 Áreas Prioritárias
 
-### 1. Coleta de Dados 📊
+### Alta Prioridade
 
-**Objetivo**: Construir datasets de código em PT-BR de alta qualidade.
+1. **Coleta de Dados**
+   - Repositórios brasileiros de qualidade
+   - Documentação técnica em PT-BR
+   - Exemplos de código real-world
 
-**Como contribuir**:
-- Identificar repositórios brasileiros de qualidade no GitHub
-- Coletar documentação técnica em português
-- Encontrar tutoriais, blog posts e cursos brasileiros
-- Submeter datasets limpos e bem documentados
+2. **Curadoria de Dados**
+   - Scripts de limpeza e filtragem
+   - Detecção de duplicatas
+   - Validação de qualidade
 
-**Critérios de qualidade**:
-- Código bem escrito, com boas práticas
-- Comentários e documentação em PT-BR
-- Licenças compatíveis (Apache 2.0, MIT, BSD)
-- Sem conteúdo duplicado ou de baixa qualidade
+3. **Treinamento**
+   - Otimização de hiperparâmetros
+   - Scripts de CPT, SFT, DPO
+   - Pipeline de self-improvement
 
-**Ferramentas**:
+4. **Avaliação**
+   - Implementação de benchmarks
+   - Métricas de qualidade
+   - Análise de resultados
+
+### Média Prioridade
+
+5. **Inferência**
+   - Otimização de performance
+   - Suporte a mais frameworks
+   - API REST/WebSocket
+
+6. **Deploy**
+   - VS Code Extension
+   - CLI melhorado
+   - Docker images
+
+### Baixa Prioridade
+
+7. **Documentação**
+   - Tutoriais
+   - Exemplos de uso
+   - Guias de troubleshooting
+
+---
+
+## 💻 Setup de Desenvolvimento
+
+### Pré-requisitos
+
+- Python 3.11+
+- Git
+- CUDA 12.x (opcional, para GPU)
+
+### Instalação
+
 ```bash
-# Script de coleta (a ser implementado)
-python scripts/collect_data.py --source github --language pt-br
+# Clone o repositório
+git clone https://github.com/seu-usuario/Lloavece.git
+cd Lloavece
+
+# Crie ambiente virtual
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# ou
+.venv\Scripts\activate  # Windows
+
+# Instale dependências de desenvolvimento
+pip install -r requirements.txt
+
+# Configure o ambiente
+python scripts/setup_environment.py
+
+# Instale pre-commit hooks (opcional)
+pre-commit install
 ```
 
----
+### Estrutura do Projeto
 
-### 2. Dataset SFT (Supervised Fine-Tuning) 💬
-
-**Objetivo**: Criar instruções de código em PT-BR para treinar o modelo.
-
-**Formato esperado**:
-```json
-{
-  "instruction": "Crie uma função Python que valide um CPF",
-  "input": "",
-  "output": "def validar_cpf(cpf: str) -> bool:\n    # Código aqui..."
-}
 ```
-
-**Tipos de instruções**:
-- **Code Generation** (40%): "Crie...", "Implemente...", "Escreva..."
-- **Code Explanation** (20%): "Explique...", "O que faz...", "Como funciona..."
-- **Code Review** (20%): "Revise...", "Tem algum bug?", "Como melhorar..."
-- **Debugging** (15%): "Por que dá erro?", "Corrija...", "Não funciona..."
-- **Contexto Brasileiro** (5%): "Como integrar PIX?", "Como validar CPF?"
-
-**Como contribuir**:
-1. Criar instruções seguindo o formato acima
-2. Submeter via Pull Request na pasta `data/sft/`
-3. Aguardar revisão da equipe
-
----
-
-### 3. Avaliação e Benchmarks 📈
-
-**Objetivo**: Medir a qualidade do modelo de forma objetiva.
-
-**Métricas**:
-- **HumanEval**: Code generation (alvo: >80% para 32B)
-- **MBPP**: Code completion (alvo: >75% para 32B)
-- **CodeBLEU**: Qualidade do código (alvo: >0.7 para 32B)
-- **Avaliação humana**: Fluência em PT-BR, precisão técnica, contexto brasileiro
-
-**Como contribuir**:
-- Rodar benchmarks e reportar resultados
-- Criar testes específicos para contexto brasileiro
-- Avaliar qualitativamente as saídas do modelo
-- Propor novas métricas de avaliação
-
----
-
-### 4. VS Code Extension 🧩
-
-**Objetivo**: Integrar o modelo ao VS Code para code completion.
-
-**Features prioritárias**:
-- Autocompletar inteligente
-- Explicação de código (hover)
-- Code review inline
-- Geração de código via comando
-- Suporte a múltiplos modelos (32B, 14B, 4B)
-
-**Como contribuir**:
-- Implementar features em TypeScript
-- Melhorar UI/UX
-- Corrigir bugs
-- Adicionar suporte a outras IDEs (JetBrains, Neovim)
-
-**Setup**:
-```bash
-cd extension
-npm install
-npm run build
+Lloavece/
+├── scripts/          # Scripts auxiliares
+├── training/         # Scripts de treino
+│   ├── configs/     # Configurações YAML
+│   ├── scripts/     # Scripts Python
+│   └── utils/       # Utilitários
+├── inference/        # Código de inferência
+├── data/            # Datasets
+├── models/          # Modelos treinados
+├── tests/           # Testes
+└── docs/            # Documentação
 ```
-
----
-
-### 5. Documentação 📚
-
-**Objetivo**: Documentação clara e completa para usuários e contribuidores.
-
-**Documentos prioritários**:
-- **installation.md**: Como instalar e configurar
-- **usage.md**: Como usar o modelo (CLI, API, VS Code)
-- **api.md**: Documentação da API REST
-- **training.md**: Como treinar o modelo
-- **contributing.md**: Este documento
-
-**Como contribuir**:
-- Escrever tutoriais
-- Criar exemplos práticos
-- Traduzir documentação
-- Melhorar a documentação existente
 
 ---
 
@@ -124,9 +132,9 @@ npm run build
 
 ### 1. Fork o Repositório
 
+Clique em "Fork" no GitHub e clone seu fork:
+
 ```bash
-# No GitHub, clique em "Fork"
-# Clone seu fork
 git clone https://github.com/SEU-USUARIO/Lloavece.git
 cd Lloavece
 ```
@@ -135,227 +143,353 @@ cd Lloavece
 
 ```bash
 # Para features
-git checkout -b feature/minha-feature
+git checkout -b feature/nome-da-feature
 
-# Para correções
-git checkout -b fix/correcao-bug
+# Para bug fixes
+git checkout -b fix/nome-do-bug
 
 # Para documentação
-git checkout -b docs/melhoria-docs
+git checkout -b docs/nome-da-doc
 ```
 
-### 3. Faça suas Alterações
+### 3. Faça Suas Alterações
 
-- Siga os padrões de código do projeto
+- Siga o [estilo de código](#estilo-de-código)
 - Adicione testes se aplicável
 - Atualize a documentação se necessário
-- Mantenha commits pequenos e focados
+- Mantenha commits atômicos e descritivos
 
-### 4. Commit suas Mudanças
-
-```bash
-# Mensagens de commit claras e descritivas
-git commit -m "feat: adiciona suporte a validação de CPF"
-git commit -m "fix: corrige bug no tokenizer"
-git commit -m "docs: atualiza guia de instalação"
-```
-
-**Convenção de commits**:
-- `feat`: Nova feature
-- `fix`: Correção de bug
-- `docs`: Mudanças na documentação
-- `refactor`: Refatoração de código
-- `test`: Adição ou modificação de testes
-- `chore`: Tarefas de manutenção
-
-### 5. Push para seu Fork
+### 4. Teste Localmente
 
 ```bash
-git push origin feature/minha-feature
+# Execute testes
+pytest tests/
+
+# Verifique qualidade do código
+black . --check
+flake8 .
+mypy .
+
+# Execute linting
+pylint scripts/ training/
 ```
 
-### 6. Abra um Pull Request
+### 5. Commit Suas Alterações
+
+```bash
+git add .
+git commit -m "tipo: descrição concisa"
+```
+
+**Formato de commits:**
+- `feat:` Nova feature
+- `fix:` Correção de bug
+- `docs:` Mudanças na documentação
+- `style:` Formatação, sem mudança de código
+- `refactor:` Refatoração de código
+- `test:` Adição ou correção de testes
+- `chore:` Tarefas de manutenção
+
+**Exemplos:**
+```bash
+git commit -m "feat: adicionar script de coleta de dados do GitHub"
+git commit -m "fix: corrigir bug no carregamento do modelo"
+git commit -m "docs: atualizar README com instruções de instalação"
+```
+
+### 6. Push para Seu Fork
+
+```bash
+git push origin feature/nome-da-feature
+```
+
+### 7. Abra um Pull Request
 
 1. Vá para o repositório original no GitHub
-2. Clique em "New Pull Request"
+2. Clique em "Pull Requests" → "New Pull Request"
 3. Selecione sua branch
-4. Descreva suas mudanças claramente
+4. Preencha o template de PR
 5. Aguarde revisão
 
 ---
 
-## ✅ Checklist para Pull Requests
+## 💅 Estilo de Código
 
-- [ ] Código segue os padrões do projeto
-- [ ] Testes foram adicionados/atualizados (se aplicável)
-- [ ] Documentação foi atualizada (se necessário)
-- [ ] Commits estão organizados e descritivos
-- [ ] Pull Request tem descrição clara
-- [ ] Não há conflitos com a branch principal
-- [ ] CI/CD passa (quando implementado)
+### Python
+
+Seguimos [PEP 8](https://peps.python.org/pep-0008/) com algumas modificações:
+
+- **Formatter**: Black (line length = 100)
+- **Linter**: Flake8
+- **Type hints**: Obrigatórios para funções públicas
+- **Docstrings**: Google style
+
+**Exemplo:**
+
+```python
+from typing import List, Optional
+
+
+def process_data(
+    data: List[dict],
+    max_items: Optional[int] = None,
+    filter_invalid: bool = True,
+) -> List[dict]:
+    """
+    Processa uma lista de dados.
+    
+    Args:
+        data: Lista de dicionários com dados brutos
+        max_items: Número máximo de itens a processar
+        filter_invalid: Se deve filtrar itens inválidos
+    
+    Returns:
+        Lista de dados processados
+    
+    Raises:
+        ValueError: Se data estiver vazio
+    """
+    if not data:
+        raise ValueError("data não pode estar vazio")
+    
+    result = []
+    
+    for item in data[:max_items]:
+        if filter_invalid and not is_valid(item):
+            continue
+        
+        processed = transform(item)
+        result.append(processed)
+    
+    return result
+```
+
+### Convenções
+
+- **Nomes de arquivos**: snake_case (ex: `collect_data.py`)
+- **Nomes de classes**: PascalCase (ex: `DataCollector`)
+- **Nomes de funções**: snake_case (ex: `collect_github_repos`)
+- **Constantes**: UPPER_SNAKE_CASE (ex: `MAX_REPOS`)
+- **Imports**: Agrupados e ordenados (use isort)
+
+### Testes
+
+```python
+import pytest
+from scripts.collect_data import CodeDataCollector
+
+
+def test_collect_github_repos():
+    """Testa coleta de repositórios do GitHub"""
+    collector = CodeDataCollector()
+    
+    repos = collector.collect_github_repos(
+        languages=['Python'],
+        min_stars=1000,
+        max_repos=10,
+    )
+    
+    assert len(repos) <= 10
+    assert all('name' in repo for repo in repos)
+    assert all('stars' in repo for repo in repos)
+
+
+def test_collect_github_repos_empty():
+    """Testa comportamento com resultado vazio"""
+    collector = CodeDataCollector()
+    
+    repos = collector.collect_github_repos(
+        languages=['LanguageInexistente'],
+        max_repos=10,
+    )
+    
+    assert len(repos) == 0
+```
 
 ---
 
-## 🐛 Reportar Bugs
+## 🐛 Reportando Bugs
 
-Encontrou um bug? Abra uma issue!
+### Antes de Reportar
 
-**Informações importantes**:
-- Descrição clara do problema
-- Passos para reproduzir
-- Comportamento esperado vs. atual
-- Versão do modelo (32B, 14B, 4B)
-- Sistema operacional e hardware
-- Logs de erro (se houver)
+1. **Verifique issues existentes** - O bug já foi reportado?
+2. **Atualize para a última versão** - O bug ainda existe?
+3. **Reproduza o problema** - Consiga reproduzir consistentemente?
 
-**Template**:
+### Template de Bug Report
+
 ```markdown
 ## Descrição do Bug
-[Descreva o problema claramente]
+
+Descrição clara e concisa do bug.
 
 ## Passos para Reproduzir
-1. Passo 1
-2. Passo 2
-3. Passo 3
+
+1. Execute '...'
+2. Use o comando '...'
+3. Veja o erro
 
 ## Comportamento Esperado
-[O que deveria acontecer]
+
+O que deveria acontecer.
 
 ## Comportamento Atual
-[O que está acontecendo]
+
+O que realmente acontece.
+
+## Screenshots
+
+Se aplicável, adicione screenshots.
 
 ## Ambiente
-- Modelo: [32B/14B/4B]
-- Sistema Operacional: [Windows/Linux/Mac]
-- RAM: [X GB]
-- GPU: [Modelo ou "CPU only"]
+
+- OS: [ex: Ubuntu 22.04]
+- Python: [ex: 3.11.5]
+- PyTorch: [ex: 2.2.0]
+- CUDA: [ex: 12.1]
+- GPU: [ex: RTX 3090]
 
 ## Logs
-[Inclua logs de erro se houver]
+
+Adicione logs relevantes aqui.
+
+## Contexto Adicional
+
+Qualquer outra informação relevante.
 ```
 
 ---
 
-## 💡 Sugerir Features
+## 💡 Sugerindo Features
 
-Tem uma ideia para melhorar a Lloavece Kode? Abra uma issue!
+### Template de Feature Request
 
-**Informações importantes**:
-- Descrição da feature
-- Por que é útil
-- Como deve funcionar
-- Exemplos de uso (se aplicável)
-
-**Template**:
 ```markdown
 ## Descrição da Feature
-[Descreva a feature claramente]
 
-## Por que é útil?
-[Explique o problema que resolve ou o benefício]
+Descrição clara e concisa da feature.
 
-## Como deve funcionar?
-[Descreva o comportamento esperado]
+## Problema Relacionado
 
-## Exemplos de uso
-[Inclua exemplos práticos se aplicável]
+Este feature está relacionado a um problema? Descreva.
+Ex: "Eu fico frustrado quando..."
+
+## Solução Proposta
+
+Descrição da solução que você gostaria.
+
+## Alternativas Consideradas
+
+Descrição de alternativas que você considerou.
+
+## Contexto Adicional
+
+Mockups, exemplos, referências, etc.
 ```
 
 ---
 
-## 📜 Código de Conduta
+## 📊 Coleta de Dados
 
-### Nossos Valores
+Se você quer contribuir com dados:
 
-- **Respeito**: Trate todos com respeito e empatia
-- **Colaboração**: Trabalhe em equipe, ajude outros contribuidores
-- **Qualidade**: Busque excelência técnica e atenção aos detalhes
-- **Transparência**: Seja aberto sobre decisões e processos
-- **Inclusão**: Acolha contribuidores de todos os backgrounds
+### Fontes de Dados
 
-### Comportamento Esperado
+1. **GitHub**
+   - Repositórios de qualidade (stars > 100)
+   - Código limpo e bem documentado
+   - Variedade de linguagens
 
-- Use linguagem acolhedora e inclusiva
-- Respeite diferentes pontos de vista
-- Aceite críticas construtivas graciosamente
-- Foque no que é melhor para a comunidade
-- Mostre empatia com outros membros
+2. **Stack Overflow**
+   - Perguntas com respostas de alta qualidade
+   - Score > 10
+   - Respostas aceitas
 
-### Comportamento Inaceitável
+3. **Documentação**
+   - Docs oficiais (Python, JS, etc)
+   - Tutoriais de qualidade
+   - Blogs técnicos
 
-- Linguagem ou imagens sexualizadas
-- Ataques pessoais ou insultos
-- Assédio público ou privado
-- Publicar informações privadas de outros
-- Qualquer forma de discriminação
+4. **Repositórios Brasileiros**
+   - Projetos open-source brasileiros
+   - Documentação em PT-BR
+   - Exemplos de código local
 
----
+### Critérios de Qualidade
 
-## 🔧 Setup de Desenvolvimento
-
-### Pré-requisitos
-
-```bash
-# Python 3.11+
-python --version
-
-# Git
-git --version
-
-# NVIDIA CUDA (se usar GPU)
-nvidia-smi
-```
-
-### Instalação
-
-```bash
-# Clone o repositório
-git clone https://github.com/alekkzsx/Lloavece.git
-cd Lloavece
-
-# Crie um ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate  # Windows
-
-# Instale as dependências
-pip install -r requirements.txt
-
-# Instale em modo de desenvolvimento
-pip install -e .
-```
-
-### Estrutura do Projeto
-
-```
-Lloavece/
-├── data/              # Datasets
-├── training/          # Scripts de treino
-├── models/            # Modelos treinados
-├── inference/         # Código de inferência
-├── extension/         # VS Code extension
-├── scripts/           # Scripts auxiliares
-└── docs/              # Documentação
-```
+- ✅ Código que compila/executa
+- ✅ Documentação clara
+- ✅ Boas práticas
+- ✅ Diversidade de problemas
+- ❌ Código duplicado
+- ❌ Código mal formatado
+- ❌ Código inseguro
 
 ---
 
-## 📞 Contato
+## 🔍 Revisão de Código
 
-- **GitHub Issues**: Para bugs, features e discussões técnicas
-- **Discord**: (a definir) - Para chat em tempo real
-- **Email**: (a definir) - Para assuntos privados
+### Checklist do Revisor
+
+- [ ] Código segue o estilo do projeto
+- [ ] Testes foram adicionados/atualizados
+- [ ] Documentação foi atualizada
+- [ ] Não há código duplicado
+- [ ] Performance é aceitável
+- [ ] Segurança foi considerada
+- [ ] Commits são atômicos e descritivos
+
+### Feedback Construtivo
+
+- Seja específico e objetivo
+- Foque no código, não na pessoa
+- Sugira melhorias, não apenas critique
+- Reconheça bons aspectos do código
+
+---
+
+## 📝 Documentação
+
+### Tipos de Documentação
+
+1. **README** - Visão geral do projeto
+2. **ARCHITECTURE** - Arquitetura técnica
+3. **Tutoriais** - Guias passo-a-passo
+4. **API Reference** - Documentação de funções
+5. **Examples** - Exemplos de uso
+
+### Ferramentas
+
+- **Markdown** para documentação
+- **Google-style docstrings** para código Python
+- **Type hints** para melhor IDE support
+
+---
+
+## ❓ Perguntas Frequentes
+
+### Q: Como configuro o ambiente de desenvolvimento?
+
+A: Veja [Setup de Desenvolvimento](#setup-de-desenvolvimento).
+
+### Q: Qual GPU eu preciso?
+
+A: Para desenvolvimento, qualquer GPU moderna serve. Para treino, recomendamos A100 40GB+.
+
+### Q: Posso usar Windows?
+
+A: Sim, mas Linux é recomendado para desenvolvimento de ML.
+
+### Q: Como testo minhas mudanças?
+
+A: Execute `pytest tests/` e verifique com `black`, `flake8`, `mypy`.
 
 ---
 
 ## 🙏 Agradecimentos
 
-Agradecemos a todos os contribuidores que ajudam a construir a Lloavece Kode!
-
-**Contribuidores**:
-- (Será atualizado conforme contribuições)
+Obrigado por contribuir! Cada contribuição, por menor que seja, faz diferença.
 
 ---
 
-**Desenvolvido com orgulho no Brasil** 🇧🇷
+**Contato**: Se tiver dúvidas, abra uma issue ou entre em contato via GitHub Discussions.
