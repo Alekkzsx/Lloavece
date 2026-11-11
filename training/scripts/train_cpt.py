@@ -24,6 +24,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 
+import yaml
 import torch
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
@@ -83,11 +84,12 @@ logger = logging.getLogger(__name__)
 class CodeDataset(Dataset):
     """Dataset para código tokenizado"""
     
-    def __init__(self, data_path: Path, max_length: int = 4096):
+    def __init__(self, data_path: Path, max_length: int = 4096, vocab_size: Optional[int] = None):
         logger.info(f"📂 Carregando dataset: {data_path}")
         
         self.data = []
         self.max_length = max_length
+        self.vocab_size = vocab_size
         
         # Carrega dados
         with open(data_path, 'r', encoding='utf-8') as f:
@@ -107,6 +109,10 @@ class CodeDataset(Dataset):
         # Trunca se necessário
         input_ids = item['input_ids'][:self.max_length]
         labels = item['labels'][:self.max_length]
+        
+        if self.vocab_size is not None and self.vocab_size > 0:
+            input_ids = [min(t, self.vocab_size - 1) if t >= 0 else t for t in input_ids]
+            labels = [min(l, self.vocab_size - 1) if l >= 0 else l for l in labels]
         
         # Padding se necessário (geralmente não precisa com packing)
         if len(input_ids) < self.max_length:
@@ -141,21 +147,26 @@ def load_model_and_tokenizer(
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     
+    has_cuda = torch.cuda.is_available()
+
     # Configurações de carregamento
     model_kwargs = {
         "trust_remote_code": True,
-        "torch_dtype": torch.bfloat16,
-        "device_map": "auto" if not load_in_4bit else None,
+        "torch_dtype": torch.bfloat16 if has_cuda else torch.float32,
+        "device_map": "auto" if (has_cuda and not load_in_4bit) else None,
     }
     
     if load_in_4bit:
-        from transformers import BitsAndBytesConfig
-        model_kwargs["quantization_config"] = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-        )
+        if not has_cuda:
+            logger.warning("⚠️  QLoRA (4-bit) requer CUDA/GPU. Desabilitando 4-bit para CPU.")
+        else:
+            from transformers import BitsAndBytesConfig
+            model_kwargs["quantization_config"] = BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_use_double_quant=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            )
     
     # Modelo
     model = AutoModelForCausalLM.from_pretrained(
@@ -163,11 +174,16 @@ def load_model_and_tokenizer(
         **model_kwargs
     )
     
+    # Ajusta tamanho dos embeddings se o tokenizer tiver mais tokens
+    if hasattr(model, 'resize_token_embeddings') and len(tokenizer) > getattr(model.config, 'vocab_size', 0):
+        logger.info(f"🔧 Redimensionando embeddings: {getattr(model.config, 'vocab_size', 0)} -> {len(tokenizer)}")
+        model.resize_token_embeddings(len(tokenizer))
+    
     # Aplica LoRA se solicitado
     if use_lora and HAS_PEFT:
         logger.info("🔧 Aplicando LoRA...")
         
-        if load_in_4bit:
+        if load_in_4bit and has_cuda:
             model = prepare_model_for_kbit_training(model)
         
         lora_config = LoraConfig(
@@ -244,25 +260,18 @@ def train(args):
     
     # Configura W&B
     if HAS_WANDB and args.use_wandb:
-        wandb.init(
-            project=args.wandb_project,
-            name=args.wandb_name,
-            config=vars(args),
-        )
-    
-    # Carrega dados
-    logger.info("📊 Carregando dados...")
-    train_dataset = CodeDataset(
-        Path(args.train_data),
-        max_length=args.max_seq_length
-    )
-    
-    val_dataset = None
-    if args.val_data and Path(args.val_data).exists():
-        val_dataset = CodeDataset(
-            Path(args.val_data),
-            max_length=args.max_seq_length
-        )
+        api_key = os.getenv('WANDB_API_KEY', '')
+        if not api_key or api_key == 'your_api_key_here':
+            os.environ.setdefault('WANDB_MODE', 'offline')
+        try:
+            wandb.init(
+                project=args.wandb_project,
+                name=args.wandb_name,
+                config=vars(args),
+            )
+        except Exception as e:
+            logger.warning(f"⚠️  Falha ao inicializar W&B ({e}). Continuando sem W&B.")
+            args.use_wandb = False
     
     # Carrega modelo
     model, tokenizer = load_model_and_tokenizer(
@@ -273,10 +282,40 @@ def train(args):
         lora_dropout=args.lora_dropout,
         load_in_4bit=args.load_in_4bit,
     )
+
+    vocab_size = getattr(model.config, 'vocab_size', None)
+    if vocab_size is None and hasattr(model.config, 'text_config'):
+        vocab_size = getattr(model.config.text_config, 'vocab_size', None)
+
+    # Carrega dados
+    logger.info("📊 Carregando dados...")
+    train_dataset = CodeDataset(
+        Path(args.train_data),
+        max_length=args.max_seq_length,
+        vocab_size=vocab_size,
+    )
     
-    # Configura DeepSpeed
+    val_dataset = None
+    if args.val_data and Path(args.val_data).exists():
+        val_dataset = CodeDataset(
+            Path(args.val_data),
+            max_length=args.max_seq_length,
+            vocab_size=vocab_size,
+        )
+    
+    # Configura DeepSpeed e precisão de acordo com hardware
+    has_cuda = torch.cuda.is_available()
+    if not has_cuda:
+        logger.warning("⚠️  CUDA não disponível. Desabilitando DeepSpeed e ajustando para CPU.")
+        args.use_deepspeed = False
+        bf16_val = False
+        fp16_val = False
+    else:
+        bf16_val = torch.cuda.is_bf16_supported()
+        fp16_val = not bf16_val
+
     deepspeed_config = None
-    if HAS_DEEPSPEED and args.use_deepspeed:
+    if has_cuda and HAS_DEEPSPEED and args.use_deepspeed:
         deepspeed_config = create_deepspeed_config(
             Path(args.output_dir),
             gradient_accumulation_steps=args.gradient_accumulation_steps,
@@ -285,42 +324,49 @@ def train(args):
         logger.info(f"✓ DeepSpeed configurado: {deepspeed_config}")
     
     # Argumentos de treinamento
-    training_args = TrainingArguments(
-        output_dir=args.output_dir,
-        num_train_epochs=args.num_epochs,
-        per_device_train_batch_size=args.batch_size,
-        per_device_eval_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.gradient_accumulation_steps,
-        learning_rate=args.learning_rate,
-        weight_decay=args.weight_decay,
-        warmup_steps=args.warmup_steps,
-        lr_scheduler_type=args.lr_scheduler,
-        logging_steps=args.logging_steps,
-        save_steps=args.save_steps,
-        eval_steps=args.eval_steps if val_dataset else None,
-        evaluation_strategy="steps" if val_dataset else "no",
-        save_total_limit=args.save_total_limit,
-        fp16=False,
-        bf16=True,
-        remove_unused_columns=False,
-        dataloader_num_workers=args.num_workers,
-        report_to="wandb" if (HAS_WANDB and args.use_wandb) else "none",
-        deepspeed=deepspeed_config,
-        gradient_checkpointing=args.gradient_checkpointing,
-        optim=args.optim,
-        max_grad_norm=args.max_grad_norm,
-        seed=args.seed,
-    )
+    training_args_kwargs = {
+        "output_dir": str(args.output_dir),
+        "num_train_epochs": args.num_epochs,
+        "per_device_train_batch_size": args.batch_size,
+        "per_device_eval_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.gradient_accumulation_steps,
+        "learning_rate": args.learning_rate,
+        "weight_decay": args.weight_decay,
+        "warmup_steps": args.warmup_steps,
+        "lr_scheduler_type": args.lr_scheduler,
+        "logging_steps": args.logging_steps,
+        "save_steps": args.save_steps,
+        "eval_steps": args.eval_steps if val_dataset else None,
+        "save_total_limit": args.save_total_limit,
+        "fp16": fp16_val,
+        "bf16": bf16_val,
+        "remove_unused_columns": False,
+        "dataloader_num_workers": args.num_workers if has_cuda else 0,
+        "report_to": "wandb" if (HAS_WANDB and args.use_wandb) else "none",
+        "deepspeed": deepspeed_config,
+        "gradient_checkpointing": args.gradient_checkpointing if has_cuda else False,
+        "optim": args.optim,
+        "max_grad_norm": args.max_grad_norm,
+        "seed": args.seed,
+    }
+
+    try:
+        training_args = TrainingArguments(eval_strategy="steps" if val_dataset else "no", **training_args_kwargs)
+    except (TypeError, ValueError):
+        training_args = TrainingArguments(evaluation_strategy="steps" if val_dataset else "no", **training_args_kwargs)
     
     # Trainer
     logger.info("🏋️  Iniciando treinamento...")
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=train_dataset,
-        eval_dataset=val_dataset,
-        tokenizer=tokenizer,
-    )
+    trainer_kwargs = {
+        "model": model,
+        "args": training_args,
+        "train_dataset": train_dataset,
+        "eval_dataset": val_dataset,
+    }
+    try:
+        trainer = Trainer(processing_class=tokenizer, **trainer_kwargs)
+    except TypeError:
+        trainer = Trainer(tokenizer=tokenizer, **trainer_kwargs)
     
     # Resume de checkpoint se especificado
     resume_from_checkpoint = None
@@ -377,8 +423,14 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
+    # Configuração e Diretórios
+    parser.add_argument('--config', type=Path, default=None,
+                       help='Arquivo YAML de configuração (ex: training/configs/cpt.yaml)')
+    parser.add_argument('--data-dir', type=Path, default=None,
+                       help='Diretório com arquivos de treino/validação')
+    
     # Dados
-    parser.add_argument('--train-data', type=Path, required=True,
+    parser.add_argument('--train-data', type=Path, default=None,
                        help='Arquivo JSONL de treino')
     parser.add_argument('--val-data', type=Path, default=None,
                        help='Arquivo JSONL de validação')
@@ -473,7 +525,80 @@ def main():
                        help='Resume de checkpoint')
     
     args = parser.parse_args()
-    
+
+    # Aplica configurações de arquivo YAML se especificado
+    if args.config and Path(args.config).exists():
+        logger.info(f"📄 Carregando configuração de {args.config}")
+        with open(args.config, 'r', encoding='utf-8') as f:
+            cfg = yaml.safe_load(f) or {}
+
+        if 'data' in cfg:
+            data_cfg = cfg['data']
+            if not args.train_data and 'train_file' in data_cfg:
+                args.train_data = Path(data_cfg['train_file'])
+            if not args.val_data and 'val_file' in data_cfg:
+                args.val_data = Path(data_cfg['val_file'])
+            if 'max_seq_length' in data_cfg:
+                args.max_seq_length = data_cfg['max_seq_length']
+            if 'num_workers' in data_cfg:
+                args.num_workers = data_cfg['num_workers']
+
+        if 'model' in cfg:
+            m_cfg = cfg['model']
+            if 'name' in m_cfg:
+                args.model_name = m_cfg['name']
+
+        if 'lora' in cfg:
+            l_cfg = cfg['lora']
+            if 'enabled' in l_cfg:
+                args.use_lora = l_cfg['enabled']
+            if 'r' in l_cfg:
+                args.lora_r = l_cfg['r']
+            if 'alpha' in l_cfg:
+                args.lora_alpha = l_cfg['alpha']
+            if 'dropout' in l_cfg:
+                args.lora_dropout = l_cfg['dropout']
+
+        if 'training' in cfg:
+            t_cfg = cfg['training']
+            if 'output_dir' in t_cfg:
+                args.output_dir = Path(t_cfg['output_dir'])
+            if 'num_epochs' in t_cfg:
+                args.num_epochs = t_cfg['num_epochs']
+            if 'batch_size' in t_cfg:
+                args.batch_size = t_cfg['batch_size']
+            if 'gradient_accumulation_steps' in t_cfg:
+                args.gradient_accumulation_steps = t_cfg['gradient_accumulation_steps']
+            if 'learning_rate' in t_cfg:
+                args.learning_rate = float(t_cfg['learning_rate'])
+
+        if 'deepspeed' in cfg:
+            d_cfg = cfg['deepspeed']
+            if 'enabled' in d_cfg:
+                args.use_deepspeed = d_cfg['enabled']
+            if 'zero_stage' in d_cfg:
+                args.deepspeed_zero_stage = d_cfg['zero_stage']
+
+        if 'wandb' in cfg:
+            w_cfg = cfg['wandb']
+            if 'enabled' in w_cfg:
+                args.use_wandb = w_cfg['enabled']
+            if 'project' in w_cfg:
+                args.wandb_project = w_cfg['project']
+            if 'name' in w_cfg:
+                args.wandb_name = w_cfg['name']
+
+    # Se --data-dir foi especificado, preenche train_data e val_data se ainda não definidos
+    if args.data_dir:
+        data_dir = Path(args.data_dir)
+        if not args.train_data and (data_dir / 'train.jsonl').exists():
+            args.train_data = data_dir / 'train.jsonl'
+        if not args.val_data and (data_dir / 'validation.jsonl').exists():
+            args.val_data = data_dir / 'validation.jsonl'
+
+    if not args.train_data:
+        parser.error("--train-data é obrigatório (ou configure via --config ou --data-dir)")
+
     # Cria diretório de logs
     Path('logs').mkdir(exist_ok=True)
     

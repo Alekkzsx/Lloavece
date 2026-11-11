@@ -10,6 +10,7 @@ peft>=0.10.0
 trl>=0.8.0
 datasets>=2.18.0
 tokenizers>=0.15.0
+huggingface-hub>=0.22.0
 
 # DeepSpeed (optional, for multi-GPU)
 deepspeed>=0.14.0
@@ -24,6 +25,8 @@ llama-cpp-python>=0.2.50
 pandas>=2.2.0
 numpy>=1.26.0
 pyarrow>=15.0.0
+datasketch>=1.6.0
+langdetect>=1.0.9
 
 # Evaluation
 lm-eval>=0.4.2

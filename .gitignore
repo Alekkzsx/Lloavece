@@ -47,6 +47,7 @@ models/gguf/*
 # Dados (muito grandes para GitHub)
 data/raw/*
 data/processed/*
+data/training/*
 data/sft/*.jsonl
 data/dpo/*.jsonl
 data/self_improvement/*.jsonl

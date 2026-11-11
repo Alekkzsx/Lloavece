@@ -123,6 +123,8 @@ class DataCurator:
         
         # Carrega arquivos JSON
         for json_file in input_dir.glob('**/*.json'):
+            if 'stats' in json_file.name.lower():
+                continue
             try:
                 with open(json_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -136,6 +138,8 @@ class DataCurator:
         
         # Carrega arquivos JSONL
         for jsonl_file in input_dir.glob('**/*.jsonl'):
+            if 'stats' in jsonl_file.name.lower():
+                continue
             try:
                 with open(jsonl_file, 'r', encoding='utf-8') as f:
                     for line in f:
@@ -145,7 +149,50 @@ class DataCurator:
             except Exception as e:
                 logger.warning(f"✗ Erro ao carregar {jsonl_file}: {e}")
         
-        df = pd.DataFrame(all_data)
+        # Normaliza itens para garantir coluna 'content'
+        normalized_data = []
+        for item in all_data:
+            if not isinstance(item, dict):
+                continue
+            if 'stats' in item and ('timestamp' in item or 'repositories' in item):
+                continue
+            
+            item_copy = dict(item)
+            if 'content' in item_copy and item_copy['content']:
+                normalized_data.append(item_copy)
+            elif 'code' in item_copy and item_copy['code']:
+                item_copy['content'] = item_copy['code']
+                if 'content_type' not in item_copy:
+                    item_copy['content_type'] = 'code'
+                normalized_data.append(item_copy)
+            elif 'question_body' in item_copy or 'answer_body' in item_copy:
+                title = item_copy.get('question_title', '')
+                q_body = item_copy.get('question_body', '')
+                a_body = item_copy.get('answer_body', '')
+                item_copy['content'] = f"# {title}\n\n{q_body}\n\n## Resposta:\n{a_body}".strip()
+                item_copy['question'] = f"{title}\n{q_body}".strip()
+                item_copy['answer'] = a_body
+                if 'content_type' not in item_copy:
+                    item_copy['content_type'] = 'qa'
+                normalized_data.append(item_copy)
+            elif 'name' in item_copy and ('description' in item_copy or 'url' in item_copy):
+                name = item_copy.get('name', '')
+                lang = item_copy.get('language') or ''
+                desc = item_copy.get('description') or ''
+                item_copy['content'] = f"# Repositório: {name}\nLinguagem: {lang}\n\nDescrição:\n{desc}".strip()
+                if 'content_type' not in item_copy:
+                    item_copy['content_type'] = 'documentation'
+                normalized_data.append(item_copy)
+            elif 'text' in item_copy and item_copy['text']:
+                item_copy['content'] = item_copy['text']
+                normalized_data.append(item_copy)
+        
+        df = pd.DataFrame(normalized_data)
+        if 'content' not in df.columns:
+            df['content'] = pd.Series(dtype=str)
+        else:
+            df['content'] = df['content'].fillna('').astype(str)
+        
         self.stats['total_samples'] = len(df)
         logger.info(f"📊 Total de amostras carregadas: {len(df)}")
         
@@ -361,8 +408,13 @@ class DataCurator:
         df['id'] = range(len(df))
         df['created_at'] = datetime.now().isoformat()
         
-        # Classifica tipo de conteúdo
-        df['content_type'] = df['content'].apply(self._classify_content)
+        # Classifica tipo de conteúdo respeitando tipos pré-existentes
+        if 'content_type' not in df.columns:
+            df['content_type'] = df['content'].apply(self._classify_content)
+        else:
+            classified = df['content'].apply(self._classify_content)
+            df['content_type'] = df['content_type'].fillna('').astype(str)
+            df['content_type'] = df['content_type'].replace('', np.nan).fillna(classified)
         
         logger.info(f"✓ Formatação completa")
         
@@ -397,12 +449,22 @@ class DataCurator:
         df = df.sample(frac=1, random_state=42).reset_index(drop=True)
         
         n = len(df)
-        train_end = int(n * self.config.train_ratio)
-        val_end = train_end + int(n * self.config.val_ratio)
-        
-        train_df = df.iloc[:train_end]
-        val_df = df.iloc[train_end:val_end]
-        test_df = df.iloc[val_end:]
+        if n <= 1:
+            train_df = df.copy()
+            val_df = df.copy()
+            test_df = df.copy()
+        elif n == 2:
+            train_df = df.iloc[:1]
+            val_df = df.iloc[1:2]
+            test_df = df.iloc[1:2]
+        else:
+            train_end = max(1, int(n * self.config.train_ratio))
+            val_end = min(n, train_end + max(1, int(n * self.config.val_ratio)))
+            train_df = df.iloc[:train_end]
+            val_df = df.iloc[train_end:val_end]
+            test_df = df.iloc[val_end:]
+            if len(test_df) == 0:
+                test_df = val_df.copy()
         
         logger.info(f"✓ Dataset dividido:")
         logger.info(f"  • Train: {len(train_df)} amostras ({len(train_df)/n*100:.1f}%)")

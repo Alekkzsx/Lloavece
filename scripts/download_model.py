@@ -148,7 +148,12 @@ def verify_model(model_path: str) -> bool:
         # Tenta carregar a config (sem carregar pesos para economizar memória)
         from transformers import AutoConfig
         config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
-        print(f"✅ Config carregada: {config.num_hidden_layers} camadas, {config.hidden_size} hidden dim")
+        num_layers = getattr(config, 'num_hidden_layers', None)
+        hidden_dim = getattr(config, 'hidden_size', None)
+        if num_layers is None and hasattr(config, 'text_config'):
+            num_layers = getattr(config.text_config, 'num_hidden_layers', 'N/A')
+            hidden_dim = getattr(config.text_config, 'hidden_size', 'N/A')
+        print(f"✅ Config carregada: {num_layers} camadas, {hidden_dim} hidden dim")
         
         return True
         
