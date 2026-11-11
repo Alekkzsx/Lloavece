@@ -1,0 +1,17 @@
+{
+  "model_path": "models/dpo",
+  "output_dir": "models/self_improvement",
+  "max_iterations": 6,
+  "min_improvement": 1.0,
+  "n_samples": 5,
+  "temperature": 0.8,
+  "max_new_tokens": 512,
+  "min_score_diff": 0.2,
+  "train_epochs": 1,
+  "train_batch_size": 2,
+  "learning_rate": 5e-6,
+  "use_lora": true,
+  "lora_r": 64,
+  "lora_alpha": 128,
+  "seed": 42
+}

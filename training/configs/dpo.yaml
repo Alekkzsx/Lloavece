@@ -1,0 +1,63 @@
+# Lloavece Kode - DPO Configuration
+# Direct Preference Optimization
+
+# Model Arguments
+model_name_or_path: models/sft  # Modelo pós-SFT
+use_lora: true
+lora_r: 64
+lora_alpha: 128
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# Data Arguments
+train_data: data/dpo/train.jsonl
+val_data: data/dpo/validation.jsonl
+max_prompt_length: 2048
+max_completion_length: 2048
+
+# DPO Arguments
+output_dir: models/dpo
+num_train_epochs: 2.0
+per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 5.0e-6
+weight_decay: 0.0
+warmup_ratio: 0.1
+lr_scheduler_type: cosine
+
+# Precision
+fp16: false
+bf16: true
+
+# Logging and Saving
+logging_steps: 10
+save_steps: 500
+eval_steps: 500
+save_total_limit: 3
+load_best_model_at_end: true
+metric_for_best_model: eval_loss
+greater_is_better: false
+
+# Experiment Tracking
+report_to: wandb
+run_name: lloavece-dpo
+
+# Optimization
+gradient_checkpointing: true
+
+# DPO Specific
+beta: 0.1  # DPO beta parameter (0.1-0.5)
+loss_type: sigmoid  # sigmoid, ipo, kto_pair
+max_length: 4096
+
+# Seeds
+seed: 42
+data_seed: 42
