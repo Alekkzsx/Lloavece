@@ -1,200 +1,90 @@
-# 🚀 Lloavece Kode
+# 🇧🇷 Lloavece Kode
 
-> **IA local brasileira especializada em engenharia de software**
+**O melhor modelo de código com fluência nativa em português brasileiro**
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-red.svg)](https://pytorch.org/)
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+![Model](https://img.shields.io/badge/model-Qwen3.8--27B-green)
+![Python](https://img.shields.io/badge/python-3.11+-blue)
 
-## 🎯 O que é o Lloavece Kode?
+---
 
-Lloavece Kode é um modelo de inteligência artificial **local**, **open-source** e **especializado exclusivamente em código**. Construído sobre o Qwen3.8-27B (Apache 2.0), foi treinado para ser um dos melhores modelos de código open-weight do mundo, com **fluência nativa em português brasileiro**.
+## 🎯 Visão
 
-### ✨ Características Principais
+Lloavece Kode é um modelo de IA especializado em **engenharia de software** com **fluência nativa em português brasileiro**, baseado no [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B).
 
-- 🧠 **Excelência em código**: Treinado em bilhões de tokens de código de alta qualidade
-- 🇧🇷 **Português fluente**: Instruções, explicações e documentação em PT-BR
-- 🔒 **100% local**: Roda offline, sem API calls, sem cloud
-- 🎯 **Focado em engenharia de software**: Especializado em problemas reais de desenvolvedores
-- ⚡ **Auto-aprimoramento**: Pipeline de self-improvement para melhoria contínua
-- 🌐 **Open-source**: Apache 2.0, sem restrições comerciais
+### Diferenciais
+
+- 🚀 **Top-tier em código**: Competitivo com Claude Sonnet e GPT-4o
+- 🇧🇷 **Português fluente**: Explicações e documentação em PT-BR
+- 💻 **100% local**: Roda na sua máquina, sem APIs externas
+- 🔧 **Engenharia de software**: Focado em problemas reais de desenvolvimento
+- 🔄 **Auto-aprimoramento**: Pipeline de self-improvement contínuo
+
+---
+
+## ⚡ Quick Start
+
+**Comece em 5 minutos:**
+
+```bash
+# 1. Setup
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Download do modelo base (~55GB)
+python scripts/download_model.py
+
+# 3. Coleta de dados
+python scripts/collect_data.py
+
+# 4. Curadoria e processamento
+python scripts/curate_data.py
+python scripts/process_data.py --all-splits
+
+# 5. Treinamento
+python training/scripts/train_cpt.py --train-data data/training/train.jsonl
+```
+
+📖 **Guia completo:** [QUICKSTART.md](QUICKSTART.md)
 
 ---
 
 ## 🏗️ Arquitetura
 
-### Modelo Base: Qwen3.8-27B
+### Modelo Base
+- **Qwen3.8-27B** (27B parâmetros)
+- **Apache 2.0** (uso comercial liberado)
+- **Contexto**: 262k tokens nativo, até 1M com YaRN
 
-| Parâmetro | Valor |
-|-----------|-------|
-| **Tamanho** | 27 bilhões de parâmetros (dense) |
-| **Contexto** | 262k tokens nativo, extensível até 1M |
-| **Licença** | Apache 2.0 |
-| **Arquitetura** | Híbrida (DeltaNet + Attention) |
+### Pipeline de Treinamento
 
-### Benchmarks Baseline
-
-| Benchmark | Score |
-|-----------|-------|
-| SWE-bench Pro | 61.7 |
-| QwenSWEBench | 79.0 |
-| Terminal Bench 2.1 | 73.0 |
-
----
-
-## 🚀 Funcionalidades (MVP v1.0)
-
-### ✅ Implementadas
-
-- **Code Completion**: Autocomplete inteligente de código
-- **Code Explanation**: Explica código em português
-- **Code Review**: Identifica bugs, problemas de segurança e más práticas
-- **Code Generation**: Gera código a partir de descrições em português
-- **Debugging Assistido**: Analisa erros e sugere correções
-
-### 🚧 Em Desenvolvimento
-
-- **VS Code Extension**: Interface integrada ao IDE
-- **Agentic Coding**: Execução autônoma de tarefas complexas
-- **Multi-file Editing**: Edição de múltiplos arquivos simultaneamente
-- **RAG Integration**: Base de conhecimento sempre atualizada
-
----
-
-## 📊 Metas de Qualidade
-
-| Benchmark | Base | Lloavece v1.0 | Melhoria |
-|-----------|------|---------------|----------|
-| SWE-bench Pro | 61.7 | 70-75 | +15% |
-| HumanEval | ~90% | 95-96% | +6% |
-| MBPP | ~85% | 92-93% | +8% |
-| LiveCodeBench | ~55% | 65-70% | +20% |
-| Aider Code Editing | ~60% | 70-75% | +15% |
-
----
-
-## 🔧 Pipeline de Treinamento
-
-O Lloavece Kode utiliza um pipeline de 4 fases para especialização:
-
-### Fase 1: Continued Pretraining (CPT)
-- **Objetivo**: Especializar em código de alta qualidade
-- **Dados**: 1-5B tokens de código curado
-- **Ganho**: +5-8% em benchmarks
-
-### Fase 2: Supervised Fine-Tuning (SFT)
-- **Objetivo**: Alinhar com instruções em português
-- **Técnica**: LoRA (treina 1-2% dos parâmetros)
-- **Ganho**: +10-15% total
-
-### Fase 3: Direct Preference Optimization (DPO)
-- **Objetivo**: Alinhar com preferências de qualidade
-- **Dados**: 100k-500k pares de preferências
-- **Ganho**: +15-20% total
-
-### Fase 4: Self-Improvement Loop
-- **Objetivo**: Auto-aprimoramento iterativo
-- **Processo**: Gera respostas → Avalia → Treina nos melhores exemplos
-- **Ganho**: +25-30% total (após 5-6 iterações)
-
----
-
-## 💻 Requisitos de Hardware
-
-### Para Inferência (Rodar o Modelo)
-
-| Configuração | VRAM/RAM | Velocidade | Qualidade |
-|--------------|----------|------------|-----------|
-| **GPU Alta** (RTX 4090) | 24GB VRAM | 30-50 tok/s | Máxima |
-| **GPU Média** (RTX 3060) | 12GB VRAM | 15-25 tok/s | Alta |
-| **CPU** (32GB RAM) | 40GB RAM | 8-15 tok/s | Alta |
-
-### Para Treinamento
-
-- **GPU**: A100 40GB/80GB
-- **RAM**: 64GB+
-- **Storage**: 500GB+
-
----
-
-## 📦 Instalação
-
-### Pré-requisitos
-
-- Python 3.11+
-- PyTorch 2.2+
-- CUDA 12.x (para GPU)
-
-### Instalação Rápida
-
-```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/Lloavece.git
-cd Lloavece
-
-# Crie ambiente virtual
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# ou
-.venv\Scripts\activate  # Windows
-
-# Instale dependências
-pip install -r requirements.txt
-
-# Baixe o modelo base
-python scripts/download_model.py
-
-# Configure o ambiente
-python scripts/setup_environment.py
+```
+Qwen3.8-27B (base)
+    ↓
+Continued Pretraining (CPT) - 2 semanas
+    ↓
+SFT com LoRA - 2 semanas
+    ↓
+DPO - 1 semana
+    ↓
+Self-Improvement Loop (5-6 iterações) - 6 semanas
+    ↓
+Quantização (GGUF/AWQ) - 1 semana
+    ↓
+Deploy (VS Code Extension) - 1 semana
 ```
 
----
+**Timeline total:** ~3-4 meses
 
-## 🚀 Uso Rápido
+### Metas de Qualidade
 
-### Via CLI
-
-```bash
-# Completar código
-lloavece complete --file main.py --language python
-
-# Explicar código
-lloavece explain --file algorithm.py
-
-# Review de código
-lloavece review --file app.py
-
-# Gerar código
-lloavece generate --prompt "Função para calcular fatorial em Python"
-```
-
-### Via Python API
-
-```python
-from lloavece import LloaveceKode
-
-# Inicialize o modelo
-model = LloaveceKode(model_path="models/gguf/lloavece-27b-q4_k_m.gguf")
-
-# Gere código
-code = model.generate(
-    prompt="Escreva uma função que implemente busca binária",
-    language="python",
-    max_tokens=500
-)
-
-print(code)
-```
-
-### VS Code Extension
-
-```bash
-# Instale a extensão (em desenvolvimento)
-cd extension
-npm install
-npm run compile
-# Instale no VS Code
-```
+| Benchmark | Base | Meta | Status |
+|-----------|------|------|--------|
+| **HumanEval** | 90% | 95-96% | 🔄 Em progresso |
+| **SWE-bench Pro** | 61.7 | 70+ | 🔄 Em progresso |
+| **LiveCodeBench** | 55% | 65-70% | 🔄 Em progresso |
+| **MBPP** | 85% | 92-93% | 🔄 Em progresso |
 
 ---
 
@@ -202,74 +92,226 @@ npm run compile
 
 ```
 Lloavece/
-├── data/                    # Datasets de treino
-├── models/                  # Modelos treinados
-├── training/                # Scripts de treino
-│   ├── configs/            # Configurações YAML
-│   ├── scripts/            # Scripts Python
-│   └── utils/              # Utilitários
-├── scripts/                 # Scripts auxiliares
-├── inference/               # Código de inferência
-├── extension/               # VS Code extension
-├── docs/                    # Documentação
-├── notebooks/               # Jupyter notebooks
-├── tests/                   # Testes
-├── ARCHITECTURE.md          # Arquitetura técnica
-├── README.md               # Este arquivo
-└── LICENSE                 # Apache 2.0
+├── 📄 README.md              # Este arquivo
+├── 📄 QUICKSTART.md          # Guia rápido
+├── 📄 ARCHITECTURE.md        # Arquitetura técnica
+├── 📄 DATA_PIPELINE.md       # Pipeline de dados
+├── 📄 LICENSE                # Apache 2.0
+│
+├── 📂 scripts/               # Scripts auxiliares
+│   ├── setup_environment.py  # Setup do ambiente
+│   ├── download_model.py     # Download do modelo base
+│   ├── collect_data.py       # Coleta de dados
+│   ├── curate_data.py        # Curadoria e limpeza
+│   └── process_data.py       # Processamento e tokenização
+│
+├── 📂 training/              # Treinamento
+│   ├── scripts/
+│   │   └── train_cpt.py     # Script de CPT
+│   └── configs/
+│       └── cpt.yaml         # Configuração de CPT
+│
+├── 📂 data/                  # Datasets
+│   ├── raw/                 # Dados brutos
+│   ├── processed/           # Dados curados
+│   └── training/            # Dados prontos para treino
+│
+├── 📂 models/                # Modelos treinados
+│   ├── base/                # Modelo base (Qwen3.8-27B)
+│   ├── cpt/                 # Após CPT
+│   ├── sft/                 # Após SFT
+│   └── gguf/                # Quantizados
+│
+├── 📂 extension/             # VS Code Extension (futuro)
+├── 📂 inference/             # Código de inferência (futuro)
+├── 📂 docs/                  # Documentação
+│   └── contributing.md      # Guia de contribuição
+└── 📂 logs/                  # Logs de execução
 ```
 
 ---
 
-## 🛠️ Stack Técnica
+## 🚀 Funcionalidades (Roadmap)
 
-### Treinamento
-- PyTorch 2.2+
-- Hugging Face Transformers
-- LoRA/QLoRA (PEFT)
-- DeepSpeed ZeRO-3
-- Weights & Biases
+### v0.1 - Prova de Conceito (Atual)
+- [x] Estrutura do projeto
+- [x] Scripts de coleta de dados
+- [x] Pipeline de curadoria
+- [x] Pipeline de processamento
+- [x] Script de treinamento CPT
+- [ ] Download do modelo base
+- [ ] Coleta de dados real
+- [ ] Treinamento CPT
 
-### Inferência
-- llama.cpp (GGUF)
-- vLLM (GPU)
-- FastAPI (API REST)
+### v0.5 - MVP
+- [ ] Modelo CPT treinado
+- [ ] Avaliação inicial (HumanEval, MBPP)
+- [ ] CLI básica para inferência
+- [ ] Documentação técnica
 
-### Deploy
-- VS Code Extension (TypeScript)
-- CLI (Python)
-- Docker
+### v1.0 - Release
+- [ ] SFT com LoRA
+- [ ] DPO
+- [ ] Self-improvement loop (5-6 iterações)
+- [ ] Quantização (GGUF/AWQ)
+- [ ] VS Code Extension
+- [ ] API local (FastAPI)
+- [ ] Documentação completa
+
+### v2.0 - Avançado
+- [ ] Sistema RAG para conhecimento atualizado
+- [ ] Múltiplos tamanhos (4B, 14B, 32B)
+- [ ] Plugin JetBrains
+- [ ] Multi-linguagem (PT-BR, EN, ES)
+- [ ] Agentic coding (execução de comandos)
 
 ---
 
-## 📈 Roadmap
+## 📊 Pipeline de Dados
 
-### v0.1 (Mês 1-2)
-- [x] Definição de arquitetura
-- [x] Setup do ambiente
-- [ ] Download do modelo base
-- [ ] Coleta de dados
-- [ ] CPT (Continued Pretraining)
+```
+┌─────────────────┐
+│   Coleta        │  GitHub, Stack Overflow, Docs
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Curadoria     │  Deduplicação, qualidade, idioma
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Processamento  │  Tokenização, packing
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Treinamento   │  CPT → SFT → DPO → Self-Improvement
+└─────────────────┘
+```
 
-### v0.5 (Mês 2-3)
-- [ ] SFT com LoRA
-- [ ] DPO
-- [ ] Self-Improvement Loop (5 iterações)
-- [ ] Avaliação inicial
+📖 **Detalhes:** [DATA_PIPELINE.md](DATA_PIPELINE.md)
 
-### v1.0 (Mês 4)
-- [ ] Quantização (GGUF/AWQ)
-- [ ] VS Code Extension (MVP)
-- [ ] CLI completo
-- [ ] Documentação
-- [ ] Release público
+---
 
-### v2.0 (Futuro)
-- [ ] RAG Integration
-- [ ] Agentic Coding avançado
-- [ ] Multi-modal (imagens de código)
-- [ ] Modelos menores (7B, 14B)
-- [ ] Fine-tuning customizado
+## 🛠️ Tecnologias
+
+### Core
+- **Modelo base**: [Qwen3.8-27B](https://huggingface.co/Qwen/Qwen3.8-27B)
+- **Framework**: PyTorch 2.2+, Transformers, PEFT
+- **Treinamento**: DeepSpeed, LoRA/QLoRA
+- **Quantização**: GGUF (llama.cpp), AWQ
+
+### Dados
+- **Coleta**: GitHub API, Stack Overflow API
+- **Processamento**: datasketch (MinHash), langdetect
+- **Formatos**: JSONL, Parquet
+
+### Infraestrutura
+- **GPU**: A100 (treinamento), CPU/GPU consumer (inferência)
+- **Cloud**: Colab Pro, Google Drive 5TB
+- **Monitoramento**: Weights & Biases
+
+---
+
+## 📦 Instalação
+
+### Requisitos
+
+- Python 3.11+
+- CUDA 12.x (para GPU)
+- 55GB de espaço livre (modelo base)
+- 8GB+ RAM (inferência), 64GB+ RAM (treinamento)
+
+### Setup Completo
+
+```bash
+# Clone o repositório
+git clone https://github.com/Alekkzsx/Lloavece.git
+cd Lloavece
+
+# Crie ambiente virtual
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# ou .venv\Scripts\activate  # Windows
+
+# Instale dependências
+pip install -r requirements.txt
+
+# Configure ambiente
+python scripts/setup_environment.py
+
+# Baixe o modelo base
+python scripts/download_model.py --verify
+```
+
+---
+
+## 🎯 Uso
+
+### Inferência (após treinamento)
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# Carrega modelo
+model_path = "models/cpt"
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForCausalLM.from_pretrained(
+    model_path,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
+)
+
+# Gera código
+prompt = "def fibonacci(n):"
+inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+outputs = model.generate(**inputs, max_new_tokens=100)
+print(tokenizer.decode(outputs[0]))
+```
+
+### CLI (futuro)
+
+```bash
+# Gera código
+lloavece generate "função para calcular fatorial"
+
+# Explica código
+lloavece explain "def quicksort(arr): ..."
+
+# Review de código
+lloavece review arquivo.py
+```
+
+### VS Code Extension (v1.0)
+
+Instale a extensão e use:
+- Autocomplete inteligente
+- Explicações em PT-BR
+- Code review
+- Geração de código
+
+---
+
+## 📈 Performance Esperada
+
+### Inferência (após quantização)
+
+| Configuração | VRAM | Velocidade | Qualidade |
+|--------------|------|------------|-----------|
+| **GGUF Q4_K_M** | 18GB | 30-50 tok/s | 95% |
+| **GGUF Q5_K_M** | 22GB | 25-40 tok/s | 97% |
+| **AWQ 4-bit** | 16GB | 35-55 tok/s | 96% |
+| **BF16 (sem quant)** | 55GB | 15-25 tok/s | 100% |
+
+### Treinamento (A100 40GB)
+
+| Fase | Tempo | VRAM | Batch Size |
+|------|-------|------|------------|
+| **CPT** | 1-2 semanas | 35GB | 1 (grad acc 8) |
+| **SFT** | 1-2 semanas | 30GB | 2 (grad acc 4) |
+| **DPO** | 1 semana | 30GB | 2 (grad acc 4) |
 
 ---
 
@@ -279,11 +321,38 @@ Contribuições são bem-vindas! Veja [docs/contributing.md](docs/contributing.m
 
 ### Áreas Prioritárias
 
-1. **Coleta de dados**: Repositórios brasileiros de qualidade
-2. **Curadoria**: Limpeza e filtragem de datasets
-3. **Treinamento**: Otimização de hiperparâmetros
-4. **Avaliação**: Benchmarks e métricas
-5. **Deploy**: VS Code extension, CLI, API
+1. **Coleta de dados**: Mais repositórios brasileiros de qualidade
+2. **Curadoria**: Melhorar filtros de qualidade
+3. **Avaliação**: Implementar mais benchmarks
+4. **Documentação**: Tutoriais e exemplos
+5. **VS Code Extension**: Interface e UX
+
+---
+
+## 📚 Documentação
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Guia rápido para começar
+- **[DATA_PIPELINE.md](DATA_PIPELINE.md)** - Pipeline completo de dados
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Arquitetura técnica detalhada
+- **[docs/contributing.md](docs/contributing.md)** - Como contribuir
+
+---
+
+## 🎓 Aprendizado
+
+### Papers e Referências
+
+- [Qwen3.8 Technical Report](https://qwen.ai/blog?id=qwen3.8)
+- [LoRA: Low-Rank Adaptation](https://arxiv.org/abs/2106.09685)
+- [QLoRA](https://arxiv.org/abs/2305.14314)
+- [DPO: Direct Preference Optimization](https://arxiv.org/abs/2305.18290)
+- [Self-Improvement in LLMs](https://arxiv.org/abs/2312.01552)
+
+### Tutoriais
+
+- [Fine-tuning LLMs com LoRA](https://huggingface.co/docs/peft)
+- [DeepSpeed Documentation](https://www.deepspeed.ai/)
+- [GGUF Format](https://github.com/ggerganov/ggml/blob/master/docs/gguf.md)
 
 ---
 
@@ -291,31 +360,52 @@ Contribuições são bem-vindas! Veja [docs/contributing.md](docs/contributing.m
 
 Este projeto está licenciado sob a **Apache License 2.0** - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-O modelo base (Qwen3.8-27B) também está sob Apache 2.0, permitindo uso comercial sem restrições.
+O modelo base **Qwen3.8-27B** também é Apache 2.0, permitindo uso comercial.
 
 ---
 
 ## 🙏 Agradecimentos
 
-- **Qwen Team** (Alibaba) pelo modelo base excepcional
-- **Hugging Face** pela infraestrutura de modelos open-source
-- **Comunidade open-source** pelos datasets e ferramentas
+- **Qwen Team** - Pelo excelente modelo base Qwen3.8-27B
+- **Hugging Face** - Pela infraestrutura e ferramentas
+- **Comunidade Open Source** - Pelas contribuições inestimáveis
 
 ---
 
 ## 📞 Contato
 
-- **GitHub Issues**: [Reportar bugs ou sugerir features](https://github.com/seu-usuario/Lloavece/issues)
-- **Discussions**: [Perguntas e discussões](https://github.com/seu-usuario/Lloavece/discussions)
+- **GitHub**: [Alekkzsx/Lloavece](https://github.com/Alekkzsx/Lloavece)
+- **Issues**: [Reportar bug ou sugerir feature](https://github.com/Alekkzsx/Lloavece/issues)
 
 ---
 
-## ⭐ Se este projeto te ajudou
+## 🗺️ Roadmap Detalhado
 
-Considere dar uma ⭐ no GitHub e compartilhar com outros desenvolvedores!
+### Q1 2026 (Atual)
+- [x] Setup do projeto
+- [x] Pipeline de dados
+- [ ] CPT completo
+- [ ] Avaliação inicial
+
+### Q2 2026
+- [ ] SFT + DPO
+- [ ] Self-improvement
+- [ ] Quantização
+- [ ] VS Code Extension v1.0
+
+### Q3 2026
+- [ ] RAG system
+- [ ] Múltiplos tamanhos
+- [ ] API pública
+- [ ] Plugin JetBrains
+
+### Q4 2026
+- [ ] Agentic coding
+- [ ] Multi-linguagem
+- [ ] v2.0 release
 
 ---
 
 **Feito com ❤️ no Brasil 🇧🇷**
 
-*Lloavece Kode - Código inteligente, em português, rodando na sua máquina.*
+*Lloavece Kode - Programando o futuro, em português*

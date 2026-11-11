@@ -1,70 +1,133 @@
-# Lloavece Kode - Configuração de Continued Pretraining (CPT)
+# Configuração de Treinamento CPT - Lloavece Kode
+# ================================================
 
 # Modelo Base
 model:
   name: "Qwen/Qwen3.8-27B"
-  path: "models/base/qwen3.8-27b"
   trust_remote_code: true
+  torch_dtype: "bfloat16"
 
 # Dados
 data:
-  train_file: "data/processed/train.jsonl"
-  eval_file: "data/processed/eval.jsonl"
+  train_file: "data/training/train.jsonl"
+  val_file: "data/training/validation.jsonl"
   max_seq_length: 4096
-  preprocessing_num_workers: 8
-  overwrite_cache: false
+  num_workers: 4
+
+# LoRA
+lora:
+  enabled: true
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# Quantização (opcional - para QLoRA)
+quantization:
+  enabled: false
+  load_in_4bit: true
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_compute_dtype: "bfloat16"
 
 # Treinamento
 training:
   output_dir: "models/cpt"
-  num_train_epochs: 2
-  per_device_train_batch_size: 2
-  per_device_eval_batch_size: 2
+  num_epochs: 2
+  batch_size: 1
   gradient_accumulation_steps: 8
   learning_rate: 2.0e-5
   weight_decay: 0.01
-  warmup_ratio: 0.03
-  lr_scheduler_type: "cosine"
+  warmup_steps: 100
+  lr_scheduler: "cosine"
   max_grad_norm: 1.0
+  optimizer: "adamw_torch"
   seed: 42
-  
-  # Mixed Precision
-  bf16: true
-  fp16: false
-  
-  # Logging
-  logging_steps: 10
-  logging_dir: "logs/cpt"
-  
-  # Checkpointing
-  save_strategy: "steps"
-  save_steps: 500
-  save_total_limit: 3
-  
-  # Evaluation
-  evaluation_strategy: "steps"
-  eval_steps: 500
-  
-  # Optimização
-  dataloader_num_workers: 4
-  dataloader_pin_memory: true
-  
-  # Resume
-  resume_from_checkpoint: null
 
-# DeepSpeed (opcional, para multi-GPU)
+# DeepSpeed
 deepspeed:
-  enabled: false
-  config_file: "training/configs/deepspeed_zero3.json"
+  enabled: true
+  zero_stage: 2
+  gradient_clipping: 1.0
+  overlap_comm: true
+  contiguous_gradients: true
+
+# Otimizações
+optimizations:
+  gradient_checkpointing: true
+  activation_checkpointing: true
+  compile_model: false  # PyTorch 2.0+
+
+# Logging
+logging:
+  logging_steps: 10
+  save_steps: 500
+  eval_steps: 500
+  save_total_limit: 3
+  report_to: "wandb"
 
 # Weights & Biases
 wandb:
   enabled: true
   project: "lloavece-kode"
-  run_name: "cpt-run-1"
-  tags: ["cpt", "qwen3.8-27b"]
+  name: "cpt-qwen3.8-27b"
+  tags:
+    - "cpt"
+    - "qwen3.8"
+    - "27b"
 
-# Hardware
-hardware:
-  cuda_visible_devices: "0"
-  torch_compile: false
+# Avaliação
+evaluation:
+  enabled: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  load_best_model_at_end: true
+
+# Checkpoint
+checkpoint:
+  save_strategy: "steps"
+  save_total_limit: 3
+  resume_from_checkpoint: null  # Caminho para checkpoint
+
+# Hiperparâmetros Avançados
+advanced:
+  # Learning rate scheduling
+  lr_scheduler_kwargs:
+    num_cycles: 0.5
+  
+  # Gradient accumulation
+  gradient_accumulation_kwargs:
+    gradient_accumulation: true
+    delay_optimizer: true
+  
+  # Memory optimization
+  memory_efficient: true
+  use_flash_attention: true  # Se disponível
+
+# Data Augmentation (opcional)
+augmentation:
+  enabled: false
+  techniques:
+    - "back_translation"
+    - "synonym_replacement"
+  probability: 0.1
+
+# Early Stopping (opcional)
+early_stopping:
+  enabled: false
+  patience: 3
+  threshold: 0.01
+
+# Distributed Training
+distributed:
+  backend: "nccl"
+  find_unused_parameters: false
